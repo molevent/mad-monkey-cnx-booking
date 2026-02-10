@@ -56,6 +56,9 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Pass pathname to server components via header
+  response.headers.set('x-pathname', request.nextUrl.pathname)
+
   // Protect admin routes
   if (request.nextUrl.pathname.startsWith('/admin')) {
     const isPublicAdminRoute =

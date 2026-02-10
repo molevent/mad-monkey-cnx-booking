@@ -1,13 +1,23 @@
 import Link from "next/link";
 import Image from "next/image";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { LayoutDashboard, Route, CalendarDays, Users, Settings, LogOut, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-async function getUser() {
+async function getApprovedAdmin() {
   const supabase = createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: adminUser } = await supabase
+    .from("admin_users")
+    .select("is_approved")
+    .eq("auth_id", user.id)
+    .single();
+
+  if (!adminUser?.is_approved) return null;
   return user;
 }
 
@@ -16,9 +26,18 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getUser();
+  // Skip sidebar for login and reset-password pages
+  const headersList = headers();
+  const url = headersList.get("x-next-url") || headersList.get("x-invoke-path") || "";
+  const pathname = headersList.get("x-pathname") || url;
 
-  // Allow access to login page
+  // Always render children-only for public admin pages
+  if (pathname.includes("/admin/login") || pathname.includes("/admin/reset-password")) {
+    return <>{children}</>;
+  }
+
+  const user = await getApprovedAdmin();
+
   if (!user) {
     return <>{children}</>;
   }
