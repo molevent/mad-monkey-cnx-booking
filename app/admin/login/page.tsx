@@ -39,7 +39,14 @@ export default function AdminLoginPage() {
         description: "Your account has been created and is awaiting admin approval. You'll be notified once approved.",
         variant: "destructive",
       });
-      // Clean URL
+      window.history.replaceState({}, "", "/admin/login");
+    }
+    if (message === "session_expired") {
+      toast({
+        title: "Session Expired",
+        description: "You have been logged out due to inactivity. Please sign in again.",
+        variant: "destructive",
+      });
       window.history.replaceState({}, "", "/admin/login");
     }
     if (error === "auth_failed") {

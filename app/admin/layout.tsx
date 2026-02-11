@@ -1,10 +1,10 @@
 import Link from "next/link";
 import Image from "next/image";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { LayoutDashboard, Route, CalendarDays, Users, Settings, LogOut, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import SessionTimeout from "./session-timeout";
 
 async function getApprovedAdmin() {
   const supabase = createServerSupabaseClient();
@@ -26,24 +26,17 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Skip sidebar for login and reset-password pages
-  const headersList = headers();
-  const url = headersList.get("x-next-url") || headersList.get("x-invoke-path") || "";
-  const pathname = headersList.get("x-pathname") || url;
-
-  // Always render children-only for public admin pages
-  if (pathname.includes("/admin/login") || pathname.includes("/admin/reset-password")) {
-    return <>{children}</>;
-  }
-
   const user = await getApprovedAdmin();
 
+  // No approved admin user — render page without sidebar (login, reset-password, etc.)
   if (!user) {
     return <>{children}</>;
   }
 
+  // Approved admin — render full dashboard layout with sidebar + session timeout
   return (
     <div className="min-h-screen bg-gray-50">
+      <SessionTimeout />
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-60 bg-white border-r border-gray-200">
         <div className="p-5 border-b border-gray-200">
