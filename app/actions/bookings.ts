@@ -372,19 +372,10 @@ export async function lookupBookingForCheckIn(code: string) {
 
 export async function updateBookingDetails(
   bookingId: string,
-  updates: {
-    customer_name?: string;
-    customer_email?: string;
-    customer_whatsapp?: string;
-    tour_date?: string;
-    start_time?: string;
-    route_id?: string;
-    pax_count?: number;
-    participants_info?: Participant[];
-    status?: string;
-  }
+  updatesJson: string
 ) {
   const supabase = createServiceRoleClient();
+  const updates = JSON.parse(updatesJson);
 
   const { error } = await supabase
     .from("bookings")

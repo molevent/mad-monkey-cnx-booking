@@ -72,11 +72,11 @@ export default function BookingEditForm({ booking, routes }: Props) {
 
   const handleSaveCustomer = async () => {
     setSaving("customer");
-    const result = await updateBookingDetails(booking.id, {
+    const result = await updateBookingDetails(booking.id, JSON.stringify({
       customer_name: customerName,
       customer_email: customerEmail,
-      customer_whatsapp: customerWhatsapp || undefined,
-    });
+      customer_whatsapp: customerWhatsapp || null,
+    }));
     if (result.error) {
       toast({ title: "Error", description: result.error, variant: "destructive" });
     } else {
@@ -89,11 +89,11 @@ export default function BookingEditForm({ booking, routes }: Props) {
 
   const handleSaveTour = async () => {
     setSaving("tour");
-    const result = await updateBookingDetails(booking.id, {
+    const result = await updateBookingDetails(booking.id, JSON.stringify({
       tour_date: tourDate,
       start_time: startTime,
       route_id: routeId,
-    });
+    }));
     if (result.error) {
       toast({ title: "Error", description: result.error, variant: "destructive" });
     } else {
@@ -106,10 +106,10 @@ export default function BookingEditForm({ booking, routes }: Props) {
 
   const handleSaveParticipants = async () => {
     setSaving("participants");
-    const result = await updateBookingDetails(booking.id, {
+    const result = await updateBookingDetails(booking.id, JSON.stringify({
       pax_count: participants.length,
       participants_info: participants,
-    });
+    }));
     if (result.error) {
       toast({ title: "Error", description: result.error, variant: "destructive" });
     } else {
@@ -122,7 +122,7 @@ export default function BookingEditForm({ booking, routes }: Props) {
 
   const handleSaveStatus = async () => {
     setSaving("status");
-    const result = await updateBookingDetails(booking.id, { status });
+    const result = await updateBookingDetails(booking.id, JSON.stringify({ status }));
     if (result.error) {
       toast({ title: "Error", description: result.error, variant: "destructive" });
     } else {

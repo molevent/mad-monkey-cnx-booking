@@ -19,6 +19,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { createBooking } from "@/app/actions/bookings";
 import { lookupCustomerByEmail } from "@/app/actions/customers";
 import { formatPrice, calculateTotalWithDiscount } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/context";
 import type { Participant, Customer } from "@/lib/types";
 
 const TIME_SLOTS = [
@@ -47,6 +48,7 @@ interface Props {
 export default function BookingForm({ slug, route }: Props) {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [returningCustomer, setReturningCustomer] = useState<Customer | null>(null);
@@ -75,8 +77,8 @@ export default function BookingForm({ slug, route }: Props) {
           customer_whatsapp: prev.customer_whatsapp || customer.whatsapp || "",
         }));
         toast({
-          title: "Welcome back!",
-          description: "We found your details from a previous booking.",
+          title: t("booking.welcome_back"),
+          description: t("booking.found_details"),
         });
       } else {
         setReturningCustomer(null);
@@ -143,7 +145,7 @@ export default function BookingForm({ slug, route }: Props) {
 
       if (result.error) {
         toast({
-          title: "Error",
+          title: t("common.error"),
           description: result.error,
           variant: "destructive",
         });
@@ -151,15 +153,15 @@ export default function BookingForm({ slug, route }: Props) {
       }
 
       toast({
-        title: "Booking Submitted!",
-        description: "We'll review your request and get back to you soon.",
+        title: t("common.booking_submitted"),
+        description: t("common.booking_submitted_desc"),
       });
 
       router.push(`/track/${result.tracking_token}`);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
+        title: t("common.error"),
+        description: t("common.something_wrong"),
         variant: "destructive",
       });
     } finally {
@@ -211,15 +213,15 @@ export default function BookingForm({ slug, route }: Props) {
         {step === 1 && (
           <Card>
             <CardHeader>
-              <CardTitle>Your Details</CardTitle>
+              <CardTitle>{t("booking.step1")}</CardTitle>
               <CardDescription>
-                Tell us how to reach you for booking confirmation
+                {t("booking.step1_desc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="tour_date">Tour Date *</Label>
+                  <Label htmlFor="tour_date">{t("booking.tour_date")} *</Label>
                   <Input
                     id="tour_date"
                     type="date"
@@ -231,7 +233,7 @@ export default function BookingForm({ slug, route }: Props) {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="start_time">Preferred Start Time *</Label>
+                  <Label htmlFor="start_time">{t("booking.start_time")} *</Label>
                   <Select
                     value={formData.start_time}
                     onValueChange={(value) =>
@@ -239,7 +241,7 @@ export default function BookingForm({ slug, route }: Props) {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select time" />
+                      <SelectValue placeholder={t("booking.select_time")} />
                     </SelectTrigger>
                     <SelectContent>
                       {TIME_SLOTS.map((time) => (
@@ -255,7 +257,7 @@ export default function BookingForm({ slug, route }: Props) {
               <Separator />
 
               <div className="space-y-2">
-                <Label htmlFor="customer_name">Full Name *</Label>
+                <Label htmlFor="customer_name">{t("booking.full_name")} *</Label>
                 <Input
                   id="customer_name"
                   placeholder="John Doe"
@@ -267,7 +269,7 @@ export default function BookingForm({ slug, route }: Props) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="customer_email">Email Address *</Label>
+                <Label htmlFor="customer_email">{t("booking.email")} *</Label>
                 <div className="relative">
                   <Input
                     id="customer_email"
@@ -287,9 +289,9 @@ export default function BookingForm({ slug, route }: Props) {
                   <div className="flex items-center gap-2 p-2.5 bg-green-50 border border-green-200 rounded-md">
                     <UserCheck className="h-4 w-4 text-green-600 shrink-0" />
                     <p className="text-xs text-green-700">
-                      Welcome back, <strong>{returningCustomer.full_name}</strong>! Your details have been filled in.
+                      {t("booking.welcome_back")}, <strong>{returningCustomer.full_name}</strong>! {t("booking.found_details")}
                       {returningCustomer.total_bookings > 0 && (
-                        <span className="text-green-600"> ({returningCustomer.total_bookings} previous booking{returningCustomer.total_bookings !== 1 ? "s" : ""})</span>
+                        <span className="text-green-600"> ({returningCustomer.total_bookings} {returningCustomer.total_bookings !== 1 ? t("booking.previous_bookings_plural") : t("booking.previous_bookings")})</span>
                       )}
                     </p>
                   </div>
@@ -297,7 +299,7 @@ export default function BookingForm({ slug, route }: Props) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="customer_whatsapp">WhatsApp Number</Label>
+                <Label htmlFor="customer_whatsapp">{t("booking.whatsapp")}</Label>
                 <Input
                   id="customer_whatsapp"
                   placeholder="+66 XX XXX XXXX"
@@ -317,7 +319,7 @@ export default function BookingForm({ slug, route }: Props) {
                 disabled={!isStep1Valid}
                 onClick={() => setStep(2)}
               >
-                Next: Participant Details
+                {t("booking.next")}
               </Button>
             </CardContent>
           </Card>
@@ -328,9 +330,9 @@ export default function BookingForm({ slug, route }: Props) {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Participant Details</CardTitle>
+                <CardTitle>{t("booking.step2")}</CardTitle>
                 <CardDescription>
-                  We need heights to prepare the right bike sizes for everyone
+                  {t("booking.step2_desc")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -338,8 +340,8 @@ export default function BookingForm({ slug, route }: Props) {
                   <div key={index} className="space-y-4 p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold">
-                        Rider {index + 1}
-                        {index === 0 && " (Lead Guest)"}
+                        {t("booking.rider")} {index + 1}
+                        {index === 0 && ` (${t("booking.lead_guest")})`}
                       </h4>
                       <div className="flex items-center gap-2">
                         {hasDiscount && index + 1 >= route.discount_from_pax && (
@@ -363,7 +365,7 @@ export default function BookingForm({ slug, route }: Props) {
 
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Name *</Label>
+                        <Label>{t("booking.name")} *</Label>
                         <Input
                           placeholder="Full name"
                           value={participant.name}
@@ -373,7 +375,7 @@ export default function BookingForm({ slug, route }: Props) {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Height * (cm)</Label>
+                        <Label>{t("booking.height")} *</Label>
                         <Input
                           placeholder="e.g., 175"
                           value={participant.height}
@@ -383,7 +385,7 @@ export default function BookingForm({ slug, route }: Props) {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Helmet Size *</Label>
+                        <Label>{t("booking.helmet_size")} *</Label>
                         <Select
                           value={participant.helmet_size}
                           onValueChange={(value) =>
@@ -403,9 +405,9 @@ export default function BookingForm({ slug, route }: Props) {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>Dietary Requirements</Label>
+                        <Label>{t("booking.dietary")}</Label>
                         <Input
-                          placeholder="None, Vegetarian, etc."
+                          placeholder={t("booking.dietary_placeholder")}
                           value={participant.dietary}
                           onChange={(e) =>
                             updateParticipant(index, "dietary", e.target.value)
@@ -422,7 +424,7 @@ export default function BookingForm({ slug, route }: Props) {
                   onClick={addParticipant}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Another Rider
+                  {t("booking.add_rider")}
                 </Button>
               </CardContent>
             </Card>
@@ -451,12 +453,12 @@ export default function BookingForm({ slug, route }: Props) {
                   ))}
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
-                    <span>Total</span>
+                    <span>{t("booking.total")}</span>
                     <span className="text-primary">{formatPrice(pricing.total)}</span>
                   </div>
                   {hasDiscount && participants.length >= route.discount_from_pax && (
                     <p className="text-xs text-green-600 text-right">
-                      You save {formatPrice(route.price * participants.length - pricing.total)}!
+                      {t("booking.you_save")} {formatPrice(route.price * participants.length - pricing.total)}!
                     </p>
                   )}
                 </div>
@@ -469,7 +471,7 @@ export default function BookingForm({ slug, route }: Props) {
                 className="flex-1"
                 onClick={() => setStep(1)}
               >
-                Back
+                {t("booking.back")}
               </Button>
               <Button
                 className="flex-1"
@@ -480,10 +482,10 @@ export default function BookingForm({ slug, route }: Props) {
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Submitting...
+                    {t("booking.submitting")}
                   </>
                 ) : (
-                  "Submit Booking Request"
+                  t("booking.submit")
                 )}
               </Button>
             </div>
