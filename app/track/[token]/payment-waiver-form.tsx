@@ -17,6 +17,13 @@ import { saveWaiverInfo, sendWaiverEmailToParticipant, setPaymentOption } from "
 import { formatPrice } from "@/lib/utils";
 import type { Participant, WaiverInfo } from "@/lib/types";
 
+interface BankInfo {
+  bank_name: string;
+  bank_account_name: string;
+  bank_account_number: string;
+  bank_swift_code: string;
+}
+
 interface Props {
   bookingId: string;
   trackingToken: string;
@@ -24,6 +31,7 @@ interface Props {
   existingWaivers: WaiverInfo[] | null;
   totalAmount: number;
   existingPaymentOption: string | null;
+  bankInfo?: BankInfo;
 }
 
 const WAIVER_TEXT = [
@@ -50,7 +58,7 @@ interface ParticipantWaiverState {
   completed: boolean;
 }
 
-export default function PaymentWaiverForm({ bookingId, trackingToken, participants, existingWaivers, totalAmount, existingPaymentOption }: Props) {
+export default function PaymentWaiverForm({ bookingId, trackingToken, participants, existingWaivers, totalAmount, existingPaymentOption, bankInfo }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const signatureRefs = useRef<(SignatureCanvas | null)[]>([]);
@@ -320,9 +328,12 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="font-semibold mb-2">Bank Transfer Details</p>
                 <div className="text-sm space-y-1">
-                  <p><strong>Bank:</strong> Bangkok Bank</p>
-                  <p><strong>Account Name:</strong> Mad Monkey Adventures Co., Ltd.</p>
-                  <p><strong>Account Number:</strong> XXX-X-XXXXX-X</p>
+                  <p><strong>Bank:</strong> {bankInfo?.bank_name || "Siam Commercial Bank (SCB)"}</p>
+                  <p><strong>Account Name:</strong> {bankInfo?.bank_account_name || "Nuthawut Tharatjai"}</p>
+                  <p><strong>Account Number:</strong> {bankInfo?.bank_account_number || "406-7-61675-7"}</p>
+                  {(bankInfo?.bank_swift_code) && (
+                    <p><strong>SWIFT Code:</strong> {bankInfo.bank_swift_code}</p>
+                  )}
                   <p className="mt-2 font-semibold text-primary">
                     Transfer Amount: {formatPrice(paymentOption === 'deposit_50' ? depositAmount : totalAmount)}
                   </p>

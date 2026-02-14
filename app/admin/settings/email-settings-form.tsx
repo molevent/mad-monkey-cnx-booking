@@ -131,6 +131,14 @@ export default function EmailSettingsForm({ initialSettings }: Props) {
               />
             </div>
             <div className="space-y-2">
+              <Label>SWIFT Code</Label>
+              <Input
+                value={settings.bank_swift_code}
+                onChange={(e) => update("bank_swift_code", e.target.value)}
+                placeholder="e.g., SICOQHBK"
+              />
+            </div>
+            <div className="space-y-2">
               <Label>Payment Deadline</Label>
               <Input
                 value={settings.payment_deadline}

@@ -38,9 +38,10 @@ INSERT INTO email_settings (key, value) VALUES
   ('company_phone', ''),
   ('company_whatsapp', ''),
   ('company_email', 'booking@madmonkeycnx.com'),
-  ('bank_name', 'Bangkok Bank'),
-  ('bank_account_name', 'Mad Monkey Adventures Co., Ltd.'),
-  ('bank_account_number', 'XXX-X-XXXXX-X'),
+  ('bank_name', 'Siam Commercial Bank (SCB)'),
+  ('bank_account_name', 'Nuthawut Tharatjai'),
+  ('bank_account_number', '406-7-61675-7'),
+  ('bank_swift_code', 'SICOQHBK'),
   ('meeting_point', 'Mad Monkey eBike HQ, 123 Cycling Lane, Chiang Mai'),
   ('meeting_point_map_url', 'https://maps.app.goo.gl/aE7fjFfVLoZMDaau9'),
   ('what_to_bring', 'Comfortable clothes suitable for cycling

@@ -7,6 +7,7 @@ export interface EmailSettings {
   bank_name: string
   bank_account_name: string
   bank_account_number: string
+  bank_swift_code: string
   meeting_point: string
   meeting_point_map_url: string
   what_to_bring: string
@@ -28,9 +29,10 @@ export const defaultEmailSettings: EmailSettings = {
   company_phone: "",
   company_whatsapp: "",
   company_email: "booking@madmonkeycnx.com",
-  bank_name: "Bangkok Bank",
-  bank_account_name: "Mad Monkey Adventures Co., Ltd.",
-  bank_account_number: "XXX-X-XXXXX-X",
+  bank_name: "Siam Commercial Bank (SCB)",
+  bank_account_name: "Nuthawut Tharatjai",
+  bank_account_number: "406-7-61675-7",
+  bank_swift_code: "SICOQHBK",
   meeting_point: "Mad Monkey eBike HQ, 123 Cycling Lane, Chiang Mai",
   meeting_point_map_url: "https://maps.app.goo.gl/aE7fjFfVLoZMDaau9",
   what_to_bring: "Comfortable clothes suitable for cycling\nSunscreen and sunglasses\nValid ID/Passport\nCamera for amazing photos!",
@@ -225,7 +227,8 @@ export function paymentRequestEmail({
     ${infoBox('Bank Transfer Information',
       infoRow('Bank', settings.bank_name) +
       infoRow('Account Name', settings.bank_account_name) +
-      infoRow('Account Number', settings.bank_account_number),
+      infoRow('Account Number', settings.bank_account_number) +
+      (settings.bank_swift_code ? infoRow('SWIFT Code', settings.bank_swift_code) : ''),
       '#374151'
     )}
     <p style="font-size:14px;color:#4b5563;">Choose your payment option, upload your payment slip, and sign the waiver:</p>

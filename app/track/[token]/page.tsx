@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { formatDate, formatTime, formatPrice, getStatusColor, getStatusLabel, calculateTotalWithDiscount } from "@/lib/utils";
+import { getEmailSettings } from "@/app/actions/email-settings";
 import PaymentWaiverForm from "./payment-waiver-form";
 import type { Booking } from "@/lib/types";
 
@@ -77,6 +78,7 @@ export default async function TrackingPage({
 
   const currentStep = getStatusStep(booking.status);
   const showPaymentForm = booking.status === "AWAITING_PAYMENT";
+  const emailSettings = showPaymentForm ? await getEmailSettings() : null;
 
   const steps = [
     {
@@ -251,6 +253,12 @@ export default async function TrackingPage({
               ).total
             }
             existingPaymentOption={booking.payment_option || null}
+            bankInfo={emailSettings ? {
+              bank_name: emailSettings.bank_name,
+              bank_account_name: emailSettings.bank_account_name,
+              bank_account_number: emailSettings.bank_account_number,
+              bank_swift_code: emailSettings.bank_swift_code,
+            } : undefined}
           />
         )}
 
