@@ -100,26 +100,26 @@ export default function PaymentStatus({
         {/* Payment Details */}
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-500">Payment Option</span>
+            <span className="text-gray-500 dark:text-muted-foreground">Payment Option</span>
             <span className="font-medium">{getOptionLabel()}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Total Amount</span>
+            <span className="text-gray-500 dark:text-muted-foreground">Total Amount</span>
             <span className="font-medium">{formatPrice(totalAmount)}</span>
           </div>
           {paymentOption === "deposit_50" && (
             <div className="flex justify-between">
-              <span className="text-gray-500">Deposit (50%)</span>
+              <span className="text-gray-500 dark:text-muted-foreground">Deposit (50%)</span>
               <span className="font-medium">{formatPrice(depositAmount)}</span>
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-gray-500">Amount Paid</span>
+            <span className="text-gray-500 dark:text-muted-foreground">Amount Paid</span>
             <span className="font-bold text-green-600">{formatPrice(amountPaid)}</span>
           </div>
           {remaining > 0 && paymentStatus !== "fully_paid" && (
             <div className="flex justify-between">
-              <span className="text-gray-500">Remaining</span>
+              <span className="text-gray-500 dark:text-muted-foreground">Remaining</span>
               <span className="font-bold text-red-600">{formatPrice(remaining)}</span>
             </div>
           )}
@@ -137,7 +137,7 @@ export default function PaymentStatus({
         {/* Mark Paid Buttons */}
         {paymentStatus !== "fully_paid" && (
           <div className="space-y-2">
-            <p className="text-xs text-gray-500 font-medium uppercase">Mark Payment</p>
+            <p className="text-xs text-gray-500 dark:text-muted-foreground font-medium uppercase">Mark Payment</p>
 
             {paymentStatus !== "deposit_paid" && paymentOption === "deposit_50" && (
               <Button

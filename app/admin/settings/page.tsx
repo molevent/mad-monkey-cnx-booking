@@ -8,7 +8,7 @@ export default async function SettingsPage() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Email Settings</h1>
-        <p className="text-gray-500 mt-1">
+        <p className="text-gray-500 dark:text-muted-foreground mt-1">
           Configure email notification content and company details
         </p>
       </div>

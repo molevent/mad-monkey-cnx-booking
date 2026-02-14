@@ -185,7 +185,7 @@ export default function EmailSettingsForm({ initialSettings }: Props) {
               rows={4}
               placeholder="One item per line"
             />
-            <p className="text-xs text-gray-500">One item per line. Each line becomes a bullet point in the email.</p>
+            <p className="text-xs text-gray-500 dark:text-muted-foreground">One item per line. Each line becomes a bullet point in the email.</p>
           </div>
         </CardContent>
       </Card>
@@ -217,7 +217,7 @@ export default function EmailSettingsForm({ initialSettings }: Props) {
               value={settings.acknowledgement_heading}
               onChange={(e) => update("acknowledgement_heading", e.target.value)}
             />
-            <p className="text-xs text-gray-500">Use {"{{customer_name}}"} to insert the customer&apos;s name</p>
+            <p className="text-xs text-gray-500 dark:text-muted-foreground">Use {"{{customer_name}}"} to insert the customer&apos;s name</p>
           </div>
           <div className="space-y-2">
             <Label>Body Text</Label>
@@ -255,7 +255,7 @@ export default function EmailSettingsForm({ initialSettings }: Props) {
               value={settings.payment_heading}
               onChange={(e) => update("payment_heading", e.target.value)}
             />
-            <p className="text-xs text-gray-500">Use {"{{customer_name}}"} to insert the customer&apos;s name</p>
+            <p className="text-xs text-gray-500 dark:text-muted-foreground">Use {"{{customer_name}}"} to insert the customer&apos;s name</p>
           </div>
           <div className="space-y-2">
             <Label>Body Text</Label>
@@ -293,7 +293,7 @@ export default function EmailSettingsForm({ initialSettings }: Props) {
               value={settings.confirmation_heading}
               onChange={(e) => update("confirmation_heading", e.target.value)}
             />
-            <p className="text-xs text-gray-500">Use {"{{customer_name}}"} to insert the customer&apos;s name</p>
+            <p className="text-xs text-gray-500 dark:text-muted-foreground">Use {"{{customer_name}}"} to insert the customer&apos;s name</p>
           </div>
           <div className="space-y-2">
             <Label>Body Text</Label>

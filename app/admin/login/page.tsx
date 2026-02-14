@@ -294,7 +294,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-background px-4">
       <div className="w-full max-w-sm">
         {/* Logo & Branding */}
         <div className="text-center mb-8">
@@ -306,14 +306,14 @@ export default function AdminLoginPage() {
             className="h-24 w-auto mx-auto mb-2"
             priority
           />
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-foreground">
             {view === "login" && "Welcome back"}
             {view === "signup" && "Create an account"}
             {view === "forgot" && "Reset your password"}
             {view === "forgot-sent" && "Check your email"}
             {view === "signup-done" && "Account created"}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-muted-foreground mt-1">
             {view === "login" && "Sign in to access the admin dashboard"}
             {view === "signup" && "New accounts require admin approval"}
             {view === "forgot" && "We'll send you a reset link"}
@@ -389,7 +389,7 @@ export default function AdminLoginPage() {
                       <button
                         type="button"
                         onClick={() => setShowLoginPassword(!showLoginPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                         tabIndex={-1}
                       >
                         {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -409,7 +409,7 @@ export default function AdminLoginPage() {
                       checked={rememberMe}
                       onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                     />
-                    <label htmlFor="remember-me" className="text-sm text-gray-600 cursor-pointer select-none">
+                    <label htmlFor="remember-me" className="text-sm text-gray-600 dark:text-gray-300 cursor-pointer select-none">
                       Remember me
                     </label>
                   </div>
@@ -440,7 +440,7 @@ export default function AdminLoginPage() {
                 {/* Divider */}
                 <div className="relative my-6">
                   <Separator />
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-3 text-xs text-gray-400">
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-card px-3 text-xs text-gray-400 dark:text-muted-foreground">
                     or continue with
                   </span>
                 </div>
@@ -462,7 +462,7 @@ export default function AdminLoginPage() {
                 </Button>
 
                 {/* Switch to Signup */}
-                <p className="text-center text-sm text-gray-500 mt-6">
+                <p className="text-center text-sm text-gray-500 dark:text-muted-foreground mt-6">
                   Don&apos;t have an account?{" "}
                   <button
                     type="button"
@@ -623,7 +623,7 @@ export default function AdminLoginPage() {
                   </Button>
                 </form>
 
-                <p className="text-center text-sm text-gray-500 mt-6">
+                <p className="text-center text-sm text-gray-500 dark:text-muted-foreground mt-6">
                   Already have an account?{" "}
                   <button
                     type="button"
@@ -668,7 +668,7 @@ export default function AdminLoginPage() {
                     )}
                   </Button>
                 </form>
-                <p className="text-center text-sm text-gray-500 mt-6">
+                <p className="text-center text-sm text-gray-500 dark:text-muted-foreground mt-6">
                   <button
                     type="button"
                     onClick={() => setView("login")}
@@ -686,7 +686,7 @@ export default function AdminLoginPage() {
                 <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
                   <Mail className="h-6 w-6 text-primary" />
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   If an account exists for <strong>{forgotEmail}</strong>, you&apos;ll receive a password reset link shortly.
                 </p>
                 <Button
@@ -705,7 +705,7 @@ export default function AdminLoginPage() {
                 <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
                   <CheckCircle className="h-6 w-6 text-primary" />
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Your account has been created and is <strong>pending admin approval</strong>.
                   You&apos;ll be able to sign in once an administrator approves your request.
                 </p>
@@ -723,15 +723,15 @@ export default function AdminLoginPage() {
 
         {/* Footer / Legal */}
         <div className="text-center mt-6 space-y-2">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-muted-foreground">
             &copy; {new Date().getFullYear()} Mad Monkey eBike Tours. All rights reserved.
           </p>
-          <div className="flex items-center justify-center gap-3 text-xs text-gray-400">
-            <a href="https://madmonkeycnx.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 hover:underline">
+          <div className="flex items-center justify-center gap-3 text-xs text-gray-400 dark:text-muted-foreground">
+            <a href="https://madmonkeycnx.com/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 dark:hover:text-gray-300 hover:underline">
               Privacy Policy
             </a>
             <span>&middot;</span>
-            <a href="https://madmonkeycnx.com/terms-of-service" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 hover:underline">
+            <a href="https://madmonkeycnx.com/terms-of-service" target="_blank" rel="noopener noreferrer" className="hover:text-gray-600 dark:hover:text-gray-300 hover:underline">
               Terms of Service
             </a>
           </div>

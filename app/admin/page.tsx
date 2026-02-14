@@ -67,9 +67,9 @@ export default async function AdminDashboard() {
 
       {/* Stats Grid */}
       <div className="grid md:grid-cols-4 gap-4 mb-8">
-        <Card className="bg-white border border-gray-200">
+        <Card className="bg-white dark:bg-card border border-gray-200 dark:border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <CardTitle className="text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wide">
               Total Bookings
             </CardTitle>
             <div className="p-2 bg-orange-50 rounded-lg">
@@ -81,9 +81,9 @@ export default async function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white border border-gray-200">
+        <Card className="bg-white dark:bg-card border border-gray-200 dark:border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <CardTitle className="text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wide">
               Pending Review
             </CardTitle>
             <div className="p-2 bg-yellow-50 rounded-lg">
@@ -97,9 +97,9 @@ export default async function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white border border-gray-200">
+        <Card className="bg-white dark:bg-card border border-gray-200 dark:border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <CardTitle className="text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wide">
               Confirmed
             </CardTitle>
             <div className="p-2 bg-orange-50 rounded-lg">
@@ -113,12 +113,12 @@ export default async function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white border border-gray-200">
+        <Card className="bg-white dark:bg-card border border-gray-200 dark:border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+            <CardTitle className="text-xs font-medium text-gray-500 dark:text-muted-foreground uppercase tracking-wide">
               Active Routes
             </CardTitle>
-            <div className="p-2 bg-gray-100 rounded-lg">
+            <div className="p-2 bg-gray-100 dark:bg-secondary rounded-lg">
               <Route className="h-4 w-4 text-gray-600" />
             </div>
           </CardHeader>
@@ -138,20 +138,20 @@ export default async function AdminDashboard() {
         </CardHeader>
         <CardContent>
           {recentBookings.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No bookings yet</p>
+            <p className="text-gray-500 dark:text-muted-foreground text-center py-8">No bookings yet</p>
           ) : (
             <div className="space-y-4">
               {recentBookings.map((booking) => (
                 <div
                   key={booking.id}
-                  className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-lg hover:border-orange-200 transition-colors"
+                  className="flex items-center justify-between p-4 bg-white dark:bg-card border border-gray-100 dark:border-border rounded-lg hover:border-orange-200 dark:hover:border-primary/30 transition-colors"
                 >
                   <div>
                     <p className="font-semibold">{booking.customer_name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-muted-foreground">
                       {booking.route?.title} • {formatDate(booking.tour_date)}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-muted-foreground">
                       {booking.pax_count} rider(s)
                     </p>
                   </div>

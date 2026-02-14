@@ -114,7 +114,7 @@ export default async function BookingDetailPage({
     <div>
       <Link
         href="/admin/bookings"
-        className="inline-flex items-center text-gray-600 hover:text-primary mb-6"
+        className="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-primary mb-6"
       >
         <ChevronLeft className="h-4 w-4 mr-1" />
         Back to Bookings
@@ -123,7 +123,7 @@ export default async function BookingDetailPage({
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Booking Details</h1>
-          <p className="text-gray-500">ID: {booking.id}</p>
+          <p className="text-gray-500 dark:text-muted-foreground">ID: {booking.id}</p>
         </div>
         <div className="flex items-center gap-2">
           <Badge className={`text-lg px-4 py-2 ${getStatusColor(booking.status)}`}>
@@ -159,14 +159,14 @@ export default async function BookingDetailPage({
                 <div className="grid md:grid-cols-2 gap-6">
                   {booking.paymentSlipSignedUrl && (
                     <div>
-                      <p className="text-sm text-gray-500 mb-2">Payment Slip</p>
+                      <p className="text-sm text-gray-500 dark:text-muted-foreground mb-2">Payment Slip</p>
                       <a
                         href={booking.paymentSlipSignedUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block"
                       >
-                        <div className="bg-gray-100 rounded-lg overflow-hidden">
+                        <div className="bg-gray-100 dark:bg-secondary rounded-lg overflow-hidden">
                           <img
                             src={booking.paymentSlipSignedUrl}
                             alt="Payment Slip"
@@ -178,8 +178,8 @@ export default async function BookingDetailPage({
                   )}
                   {booking.waiverSignatureSignedUrl && (
                     <div>
-                      <p className="text-sm text-gray-500 mb-2">Waiver Signature</p>
-                      <div className="bg-gray-100 rounded-lg overflow-hidden">
+                      <p className="text-sm text-gray-500 dark:text-muted-foreground mb-2">Waiver Signature</p>
+                      <div className="bg-gray-100 dark:bg-secondary rounded-lg overflow-hidden">
                         <img
                           src={booking.waiverSignatureSignedUrl}
                           alt="Signature"
@@ -202,14 +202,14 @@ export default async function BookingDetailPage({
                             {w.signed ? <span className="text-green-600 ml-2">✓ Signed</span> : <span className="text-yellow-600 ml-2">⏳ Pending</span>}
                           </span>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-500 mb-2">
+                        <div className="grid grid-cols-3 gap-2 text-xs text-gray-500 dark:text-muted-foreground mb-2">
                           <span>Passport: {w.passport_no || "—"}</span>
                           <span>Date: {w.date || "—"}</span>
                           <span>Email: {w.email || "—"}</span>
                         </div>
                         {w.signed && w.signed_signature_url && (
-                          <div className="mt-2 bg-white rounded border p-2">
-                            <p className="text-xs text-gray-400 mb-1">Signature</p>
+                          <div className="mt-2 bg-white dark:bg-card rounded border dark:border-border p-2">
+                            <p className="text-xs text-gray-400 dark:text-muted-foreground mb-1">Signature</p>
                             <img
                               src={w.signed_signature_url}
                               alt={`Signature of ${w.signer_name}`}

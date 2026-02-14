@@ -263,21 +263,21 @@ export default function BookingEditForm({ booking, routes }: Props) {
               <div className="flex items-center gap-3">
                 <User className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-500">Name</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">Name</p>
                   <p className="font-medium">{booking.customer_name}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-500">Email</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">Email</p>
                   <p className="font-medium">{booking.customer_email}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-500">WhatsApp</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">WhatsApp</p>
                   <p className="font-medium">{booking.customer_whatsapp || "Not provided"}</p>
                 </div>
               </div>
@@ -350,24 +350,24 @@ export default function BookingEditForm({ booking, routes }: Props) {
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-gray-500">Tour</p>
+                <p className="text-sm text-gray-500 dark:text-muted-foreground">Tour</p>
                 <p className="font-medium">{booking.route?.title}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Difficulty</p>
+                <p className="text-sm text-gray-500 dark:text-muted-foreground">Difficulty</p>
                 <p className="font-medium">{booking.route?.difficulty}</p>
               </div>
               <div className="flex items-center gap-3">
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-500">Date</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">Date</p>
                   <p className="font-medium">{formatDate(booking.tour_date)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Clock className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-500">Start Time</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">Start Time</p>
                   <p className="font-medium">{formatTime(booking.start_time)}</p>
                 </div>
               </div>
@@ -378,7 +378,7 @@ export default function BookingEditForm({ booking, routes }: Props) {
 
       {/* Participants */}
       <Card className="border border-orange-200">
-        <CardHeader className="bg-orange-50">
+        <CardHeader className="bg-orange-50 dark:bg-accent">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-primary">
               <Users className="h-5 w-5" />
@@ -391,7 +391,7 @@ export default function BookingEditForm({ booking, routes }: Props) {
           {editingParticipants ? (
             <div className="space-y-4">
               {participants.map((p, index) => (
-                <div key={index} className="p-4 bg-white border border-gray-200 rounded-lg space-y-3">
+                <div key={index} className="p-4 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-lg space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="font-semibold text-sm">
                       Rider {index + 1}
@@ -463,7 +463,7 @@ export default function BookingEditForm({ booking, routes }: Props) {
           ) : (
             <div className="space-y-4">
               {booking.participants_info.map((participant, index) => (
-                <div key={index} className="p-4 bg-white border border-gray-100 rounded-lg">
+                <div key={index} className="p-4 bg-white dark:bg-card border border-gray-100 dark:border-border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold">
                       {participant.name}
@@ -473,15 +473,15 @@ export default function BookingEditForm({ booking, routes }: Props) {
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div className="flex items-center gap-2">
                       <Ruler className="h-4 w-4 text-primary" />
-                      <span className="text-gray-500">Height:</span>
+                      <span className="text-gray-500 dark:text-muted-foreground">Height:</span>
                       <span className="font-semibold text-primary">{participant.height} cm</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Helmet:</span>
+                      <span className="text-gray-500 dark:text-muted-foreground">Helmet:</span>
                       <span className="font-medium ml-1">{participant.helmet_size}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Dietary:</span>
+                      <span className="text-gray-500 dark:text-muted-foreground">Dietary:</span>
                       <span className="font-medium ml-1">{participant.dietary || "None"}</span>
                     </div>
                   </div>

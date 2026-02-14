@@ -55,7 +55,7 @@ export default async function BookingsPage() {
       <TableBody>
         {bookings.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+            <TableCell colSpan={7} className="text-center py-8 text-gray-500 dark:text-muted-foreground">
               No bookings in this category
             </TableCell>
           </TableRow>
@@ -65,14 +65,14 @@ export default async function BookingsPage() {
               <TableCell>
                 <div>
                   <p className="font-medium">{booking.customer_name}</p>
-                  <p className="text-sm text-gray-500">{booking.customer_email}</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">{booking.customer_email}</p>
                 </div>
               </TableCell>
               <TableCell>{booking.route?.title}</TableCell>
               <TableCell>
                 <div>
                   <p>{formatDate(booking.tour_date)}</p>
-                  <p className="text-sm text-gray-500">{formatTime(booking.start_time)}</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">{formatTime(booking.start_time)}</p>
                 </div>
               </TableCell>
               <TableCell>{booking.pax_count}</TableCell>

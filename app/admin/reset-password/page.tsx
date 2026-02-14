@@ -65,7 +65,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Image
@@ -76,10 +76,10 @@ export default function ResetPasswordPage() {
             className="h-24 w-auto mx-auto mb-2"
             priority
           />
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-foreground">
             {done ? "Password Updated" : "Set New Password"}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-muted-foreground mt-1">
             {done ? "You can now sign in with your new password" : "Enter your new password below"}
           </p>
         </div>
@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
                 <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                   <CheckCircle className="h-6 w-6 text-green-600" />
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Your password has been successfully updated.
                 </p>
                 <Button className="w-full" onClick={() => router.push("/admin/login")}>
@@ -121,7 +121,7 @@ export default function ResetPasswordPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                       tabIndex={-1}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -164,7 +164,7 @@ export default function ResetPasswordPage() {
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                       tabIndex={-1}
                     >
                       {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -198,7 +198,7 @@ export default function ResetPasswordPage() {
         </Card>
 
         <div className="text-center mt-6">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 dark:text-muted-foreground">
             &copy; {new Date().getFullYear()} Mad Monkey eBike Tours. All rights reserved.
           </p>
         </div>

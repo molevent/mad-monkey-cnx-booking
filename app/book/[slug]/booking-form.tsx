@@ -337,7 +337,7 @@ export default function BookingForm({ slug, route }: Props) {
               </CardHeader>
               <CardContent className="space-y-6">
                 {participants.map((participant, index) => (
-                  <div key={index} className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                  <div key={index} className="space-y-4 p-4 bg-gray-50 dark:bg-secondary rounded-lg">
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold">
                         {t("booking.rider")} {index + 1}

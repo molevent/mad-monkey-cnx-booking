@@ -173,7 +173,7 @@ export default function EditRoutePage() {
     <div>
       <Link
         href="/admin/routes"
-        className="inline-flex items-center text-gray-600 hover:text-primary mb-6"
+        className="inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-primary mb-6"
       >
         <ChevronLeft className="h-4 w-4 mr-1" />
         Back to Routes
@@ -293,7 +293,7 @@ export default function EditRoutePage() {
                     <SelectItem value="percentage">Percentage (% off per extra person)</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-muted-foreground">
                   Discount applies to each person from the Nth rider onwards
                 </p>
               </div>
@@ -391,8 +391,8 @@ export default function EditRoutePage() {
                       ) : (
                         <>
                           <Upload className="h-8 w-8 text-gray-400" />
-                          <p className="text-sm text-gray-500 mt-2">Click to upload image</p>
-                          <p className="text-xs text-gray-400 mt-1">Max 5MB</p>
+                          <p className="text-sm text-gray-500 dark:text-muted-foreground mt-2">Click to upload image</p>
+                          <p className="text-xs text-gray-400 dark:text-muted-foreground mt-1">Max 5MB</p>
                         </>
                       )}
                     </label>
@@ -409,7 +409,7 @@ export default function EditRoutePage() {
                   value={formData.komoot_iframe}
                   onChange={(e) => setFormData({ ...formData, komoot_iframe: e.target.value })}
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-muted-foreground">
                   Paste the iframe embed code from Komoot
                 </p>
               </div>

@@ -54,7 +54,7 @@ export default async function UsersPage() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold">User Management</h1>
-        <p className="text-gray-500 mt-1">Approve or manage admin users</p>
+        <p className="text-gray-500 dark:text-muted-foreground mt-1">Approve or manage admin users</p>
       </div>
 
       <Card>
@@ -75,7 +75,7 @@ export default async function UsersPage() {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500 dark:text-muted-foreground">
                     No users yet.
                   </TableCell>
                 </TableRow>
@@ -95,10 +95,10 @@ export default async function UsersPage() {
                       {user.is_super_admin ? (
                         <Badge className="bg-gray-900 text-white">Super Admin</Badge>
                       ) : (
-                        <span className="text-gray-500">Admin</span>
+                        <span className="text-gray-500 dark:text-muted-foreground">Admin</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-gray-500 text-sm">
+                    <TableCell className="text-gray-500 dark:text-muted-foreground text-sm">
                       {new Date(user.created_at).toLocaleDateString()}
                     </TableCell>
                     {isSuperAdmin && (

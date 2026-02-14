@@ -58,7 +58,7 @@ export default async function RoutesPage() {
             <TableBody>
               {routes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500 dark:text-muted-foreground">
                     No routes yet. Create your first route!
                   </TableCell>
                 </TableRow>
@@ -80,7 +80,7 @@ export default async function RoutesPage() {
                         )}
                         <div>
                           <p className="font-medium">{route.title}</p>
-                          <p className="text-sm text-gray-500 truncate max-w-xs">
+                          <p className="text-sm text-gray-500 dark:text-muted-foreground truncate max-w-xs">
                             {(route.description || "").substring(0, 50)}...
                           </p>
                         </div>
@@ -95,7 +95,7 @@ export default async function RoutesPage() {
                       {route.is_active ? (
                         <Badge className="bg-orange-100 text-orange-700">Active</Badge>
                       ) : (
-                        <Badge className="bg-gray-100 text-gray-700">Inactive</Badge>
+                        <Badge className="bg-gray-100 dark:bg-secondary text-gray-700 dark:text-gray-300">Inactive</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right">

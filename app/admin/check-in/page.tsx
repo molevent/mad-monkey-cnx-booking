@@ -108,7 +108,7 @@ export default function CheckInPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Check-In</h1>
-          <p className="text-gray-500">Scan QR code or enter booking reference</p>
+          <p className="text-gray-500 dark:text-muted-foreground">Scan QR code or enter booking reference</p>
         </div>
         <QrCode className="h-10 w-10 text-primary" />
       </div>
@@ -200,26 +200,26 @@ export default function CheckInPage() {
               <div className="flex items-center gap-3">
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-500">Tour Date</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">Tour Date</p>
                   <p className="font-medium">{formatDate(booking.tour_date)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Clock className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-500">Start Time</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">Start Time</p>
                   <p className="font-medium">{formatTime(booking.start_time)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Users className="h-5 w-5 text-gray-400" />
                 <div>
-                  <p className="text-sm text-gray-500">Riders</p>
+                  <p className="text-sm text-gray-500 dark:text-muted-foreground">Riders</p>
                   <p className="font-medium">{booking.pax_count} person(s)</p>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Route</p>
+                <p className="text-sm text-gray-500 dark:text-muted-foreground">Route</p>
                 <p className="font-medium">{booking.route?.title || "—"}</p>
               </div>
             </div>
@@ -232,12 +232,12 @@ export default function CheckInPage() {
                   <p className="font-semibold text-sm mb-2">Participants</p>
                   <div className="space-y-2">
                     {booking.participants_info.map((p: any, i: number) => (
-                      <div key={i} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                      <div key={i} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-secondary rounded text-sm">
                         <span className="font-medium">
                           {i + 1}. {p.name}
                           {i === 0 && <span className="text-gray-400 ml-1">(Lead)</span>}
                         </span>
-                        <span className="text-gray-500">
+                        <span className="text-gray-500 dark:text-muted-foreground">
                           {p.height}cm · Helmet {p.helmet_size}
                           {p.dietary ? ` · ${p.dietary}` : ""}
                         </span>
@@ -280,7 +280,7 @@ export default function CheckInPage() {
                   <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
                   <p className="text-green-700 font-bold text-lg">Already Checked In</p>
                   {booking.checked_in_at && (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-muted-foreground">
                       at {new Date(booking.checked_in_at).toLocaleString()}
                     </p>
                   )}
@@ -309,7 +309,7 @@ export default function CheckInPage() {
                 Check In Now
               </Button>
             ) : (
-              <div className="text-center py-4 text-gray-500">
+              <div className="text-center py-4 text-gray-500 dark:text-muted-foreground">
                 <p>This booking is not confirmed yet and cannot be checked in.</p>
               </div>
             )}
@@ -317,7 +317,7 @@ export default function CheckInPage() {
             {/* Clear / New Search */}
             <Button
               variant="ghost"
-              className="w-full text-gray-500"
+              className="w-full text-gray-500 dark:text-muted-foreground"
               onClick={() => { setBooking(null); setCode(""); setError(null); }}
             >
               Search Another Booking

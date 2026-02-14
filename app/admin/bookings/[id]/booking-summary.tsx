@@ -92,7 +92,7 @@ export default function BookingSummary({
       <CardContent className="space-y-4">
         <div>
           <div className="flex items-center justify-between mb-1">
-            <p className="text-sm text-gray-500">Total Amount</p>
+            <p className="text-sm text-gray-500 dark:text-muted-foreground">Total Amount</p>
             {!editing && (
               <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setEditing(true)}>
                 <Pencil className="h-3 w-3 mr-1" />
@@ -104,7 +104,7 @@ export default function BookingSummary({
           {editing ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-500">THB</span>
+                <span className="text-sm font-medium text-gray-500 dark:text-muted-foreground">THB</span>
                 <Input
                   type="number"
                   min="0"
@@ -125,7 +125,7 @@ export default function BookingSummary({
                 </Button>
               </div>
               {isCustom && (
-                <Button size="sm" variant="ghost" onClick={handleReset} disabled={saving} className="w-full text-xs text-gray-500">
+                <Button size="sm" variant="ghost" onClick={handleReset} disabled={saving} className="w-full text-xs text-gray-500 dark:text-muted-foreground">
                   Reset to calculated ({formatPrice(calculatedTotal)})
                 </Button>
               )}
@@ -135,7 +135,7 @@ export default function BookingSummary({
               <p className="text-2xl font-bold text-primary">
                 {formatPrice(effectiveTotal)}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-muted-foreground">
                 {formatPrice(pricePerPerson)} x {paxCount} riders
                 {isCustom && (
                   <span className="text-orange-500 ml-1">(adjusted)</span>
@@ -146,7 +146,7 @@ export default function BookingSummary({
         </div>
         <Separator />
         <div>
-          <p className="text-sm text-gray-500">Created</p>
+          <p className="text-sm text-gray-500 dark:text-muted-foreground">Created</p>
           <p className="font-medium">
             {new Date(createdAt).toLocaleString()}
           </p>

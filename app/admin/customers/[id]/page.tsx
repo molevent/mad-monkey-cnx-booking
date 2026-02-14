@@ -64,8 +64,8 @@ export default async function CustomerDetailPage({
             Back to Customers
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">{customer.full_name}</h1>
-        <p className="text-sm text-gray-500">Customer since {new Date(customer.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-foreground">{customer.full_name}</h1>
+        <p className="text-sm text-gray-500 dark:text-muted-foreground">Customer since {new Date(customer.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -109,17 +109,17 @@ export default async function CustomerDetailPage({
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Total Bookings</span>
+                <span className="text-gray-500 dark:text-muted-foreground">Total Bookings</span>
                 <span className="font-semibold">{bookings.length}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Confirmed</span>
+                <span className="text-gray-500 dark:text-muted-foreground">Confirmed</span>
                 <span className="font-semibold text-green-600">
                   {bookings.filter((b) => b.status === "CONFIRMED").length}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Cancelled</span>
+                <span className="text-gray-500 dark:text-muted-foreground">Cancelled</span>
                 <span className="font-semibold text-red-600">
                   {bookings.filter((b) => b.status === "CANCELLED").length}
                 </span>
@@ -128,8 +128,8 @@ export default async function CustomerDetailPage({
                 <>
                   <Separator />
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">Notes</p>
-                    <p className="text-sm text-gray-700">{customer.notes}</p>
+                    <p className="text-xs text-gray-500 dark:text-muted-foreground mb-1">Notes</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">{customer.notes}</p>
                   </div>
                 </>
               )}
@@ -145,21 +145,21 @@ export default async function CustomerDetailPage({
             </CardHeader>
             <CardContent>
               {bookings.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-8">No bookings found.</p>
+                <p className="text-sm text-gray-500 dark:text-muted-foreground text-center py-8">No bookings found.</p>
               ) : (
                 <div className="space-y-3">
                   {bookings.map((booking) => (
                     <Link
                       key={booking.id}
                       href={`/admin/bookings/${booking.id}`}
-                      className="block p-4 rounded-lg border border-gray-200 hover:border-primary/30 hover:bg-orange-50/30 transition-colors"
+                      className="block p-4 rounded-lg border border-gray-200 dark:border-border hover:border-primary/30 hover:bg-orange-50/30 dark:hover:bg-accent transition-colors"
                     >
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900 dark:text-foreground">
                             {(booking.route as any)?.title || "Unknown Route"}
                           </p>
-                          <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                          <div className="flex items-center gap-3 mt-1 text-sm text-gray-500 dark:text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               {formatDate(booking.tour_date)}
