@@ -370,6 +370,38 @@ export async function lookupBookingForCheckIn(code: string) {
   return { booking };
 }
 
+export async function updateBookingDetails(
+  bookingId: string,
+  updates: {
+    customer_name?: string;
+    customer_email?: string;
+    customer_whatsapp?: string;
+    tour_date?: string;
+    start_time?: string;
+    route_id?: string;
+    pax_count?: number;
+    participants_info?: Participant[];
+    status?: string;
+  }
+) {
+  const supabase = createServiceRoleClient();
+
+  const { error } = await supabase
+    .from("bookings")
+    .update(updates)
+    .eq("id", bookingId);
+
+  if (error) {
+    console.error("Update booking error:", error);
+    return { error: "Failed to update booking" };
+  }
+
+  revalidatePath("/admin/bookings");
+  revalidatePath(`/admin/bookings/${bookingId}`);
+
+  return { success: true };
+}
+
 export async function updateBookingTotal(bookingId: string, customTotal: number | null) {
   const supabase = createServiceRoleClient();
 

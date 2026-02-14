@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { formatDate, formatTime, formatPrice, getStatusColor, getStatusLabel, calculateTotalWithDiscount } from "@/lib/utils";
 import BookingActions from "./booking-actions";
+import BookingEditForm from "./booking-edit-form";
 import BookingSummary from "./booking-summary";
 import PaymentStatus from "./payment-status";
 import type { Booking } from "@/lib/types";
@@ -78,12 +79,24 @@ async function getBooking(id: string) {
   };
 }
 
+async function getRoutes() {
+  const supabase = createServiceRoleClient();
+  const { data } = await supabase
+    .from("routes")
+    .select("id, title")
+    .order("title");
+  return data || [];
+}
+
 export default async function BookingDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const booking = await getBooking(params.id);
+  const [booking, routes] = await Promise.all([
+    getBooking(params.id),
+    getRoutes(),
+  ]);
 
   if (!booking) {
     notFound();
@@ -127,115 +140,8 @@ export default async function BookingDetailPage({
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main Info */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Customer Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Customer Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3">
-                <User className="h-5 w-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Name</p>
-                  <p className="font-medium">{booking.customer_name}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail className="h-5 w-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p className="font-medium">{booking.customer_email}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="h-5 w-5 text-gray-400" />
-                <div>
-                  <p className="text-sm text-gray-500">WhatsApp</p>
-                  <p className="font-medium">{booking.customer_whatsapp || "Not provided"}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Tour Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Tour Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-500">Tour</p>
-                  <p className="font-medium">{booking.route?.title}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Difficulty</p>
-                  <p className="font-medium">{booking.route?.difficulty}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Calendar className="h-5 w-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Date</p>
-                    <p className="font-medium">{formatDate(booking.tour_date)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Start Time</p>
-                    <p className="font-medium">{formatTime(booking.start_time)}</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Participants - CRITICAL INFO */}
-          <Card className="border border-orange-200">
-            <CardHeader className="bg-orange-50">
-              <CardTitle className="flex items-center gap-2 text-primary">
-                <Users className="h-5 w-5" />
-                Participants ({booking.pax_count} riders) - IMPORTANT
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="space-y-4">
-                {booking.participants_info.map((participant, index) => (
-                  <div key={index} className="p-4 bg-white border border-gray-100 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">
-                        {participant.name}
-                        {index === 0 && (
-                          <Badge variant="secondary" className="ml-2">Lead Guest</Badge>
-                        )}
-                      </h4>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Ruler className="h-4 w-4 text-primary" />
-                        <span className="text-gray-500">Height:</span>
-                        <span className="font-semibold text-primary">{participant.height} cm</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Helmet:</span>
-                        <span className="font-medium ml-1">{participant.helmet_size}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Dietary:</span>
-                        <span className="font-medium ml-1">{participant.dietary || "None"}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          {/* Editable: Status, Customer, Tour, Participants */}
+          <BookingEditForm booking={booking} routes={routes} />
 
           {/* Payment & Waiver */}
           {(booking.payment_slip_url || booking.waiver_signature_url) && (
