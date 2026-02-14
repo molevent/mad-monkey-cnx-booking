@@ -32,6 +32,20 @@ export interface Route {
   discount_from_pax: number
 }
 
+export interface Customer {
+  id: string
+  created_at: string
+  updated_at: string
+  email: string
+  full_name: string
+  whatsapp: string | null
+  passport_no: string | null
+  nationality: string | null
+  notes: string | null
+  total_bookings: number
+  last_booking_at: string | null
+}
+
 export interface Booking {
   id: string
   created_at: string
@@ -39,6 +53,7 @@ export interface Booking {
   tour_date: string
   start_time: string
   route_id: string
+  customer_id: string | null
   customer_name: string
   customer_email: string
   customer_whatsapp: string | null
@@ -58,6 +73,7 @@ export interface Booking {
   checked_in_at: string | null
   tracking_token: string
   route?: Route
+  customer?: Customer
 }
 
 export interface WaiverInfo {

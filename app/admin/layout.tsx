@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
-import { LayoutDashboard, Route, CalendarDays, Users, Settings, LogOut, QrCode } from "lucide-react";
+import { LayoutDashboard, Route, CalendarDays, Users, Settings, LogOut, QrCode, Contact } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import SessionTimeout from "./session-timeout";
@@ -78,6 +78,15 @@ export default async function AdminLayout({
             >
               <QrCode className="h-4 w-4 mr-3" />
               Check-In
+            </Button>
+          </Link>
+          <Link href="/admin/customers">
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-gray-600 hover:text-primary hover:bg-orange-50 font-medium"
+            >
+              <Contact className="h-4 w-4 mr-3" />
+              Customers
             </Button>
           </Link>
           <Link href="/admin/routes">

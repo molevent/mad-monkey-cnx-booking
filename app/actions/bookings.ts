@@ -34,6 +34,46 @@ export async function createBooking(input: CreateBookingInput) {
     return { error: "Tour not found" };
   }
 
+  // Find or create customer record
+  let customerId: string | null = null;
+  try {
+    const { data: existingCustomer } = await supabase
+      .from("customers")
+      .select("id, total_bookings")
+      .eq("email", input.customer_email.toLowerCase().trim())
+      .single();
+
+    if (existingCustomer) {
+      customerId = existingCustomer.id;
+      // Update customer info with latest details
+      await supabase
+        .from("customers")
+        .update({
+          full_name: input.customer_name,
+          whatsapp: input.customer_whatsapp || null,
+          total_bookings: (existingCustomer.total_bookings || 0) + 1,
+          last_booking_at: new Date().toISOString(),
+        })
+        .eq("id", existingCustomer.id);
+    } else {
+      const { data: newCustomer } = await supabase
+        .from("customers")
+        .insert({
+          email: input.customer_email.toLowerCase().trim(),
+          full_name: input.customer_name,
+          whatsapp: input.customer_whatsapp || null,
+          total_bookings: 1,
+          last_booking_at: new Date().toISOString(),
+        })
+        .select("id")
+        .single();
+      if (newCustomer) customerId = newCustomer.id;
+    }
+  } catch (e) {
+    // Non-critical — continue without customer link
+    console.error("Customer upsert error:", e);
+  }
+
   // Create booking
   const { data: booking, error: bookingError } = await supabase
     .from("bookings")
@@ -47,6 +87,7 @@ export async function createBooking(input: CreateBookingInput) {
       pax_count: input.pax_count,
       participants_info: input.participants_info,
       status: "PENDING_REVIEW",
+      customer_id: customerId,
     })
     .select("tracking_token")
     .single();

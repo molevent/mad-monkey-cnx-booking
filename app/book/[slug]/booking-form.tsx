@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, Tag } from "lucide-react";
+import { Plus, Trash2, Loader2, Tag, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,8 +17,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { createBooking } from "@/app/actions/bookings";
+import { lookupCustomerByEmail } from "@/app/actions/customers";
 import { formatPrice, calculateTotalWithDiscount } from "@/lib/utils";
-import type { Participant } from "@/lib/types";
+import type { Participant, Customer } from "@/lib/types";
 
 const TIME_SLOTS = [
   "07:00",
@@ -48,6 +49,8 @@ export default function BookingForm({ slug, route }: Props) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [returningCustomer, setReturningCustomer] = useState<Customer | null>(null);
+  const [lookingUp, setLookingUp] = useState(false);
 
   const [formData, setFormData] = useState({
     tour_date: "",
@@ -56,6 +59,34 @@ export default function BookingForm({ slug, route }: Props) {
     customer_email: "",
     customer_whatsapp: "",
   });
+
+  const handleEmailBlur = useCallback(async () => {
+    const email = formData.customer_email.trim();
+    if (!email || !email.includes("@")) return;
+
+    setLookingUp(true);
+    try {
+      const { customer } = await lookupCustomerByEmail(email);
+      if (customer) {
+        setReturningCustomer(customer);
+        setFormData((prev) => ({
+          ...prev,
+          customer_name: prev.customer_name || customer.full_name,
+          customer_whatsapp: prev.customer_whatsapp || customer.whatsapp || "",
+        }));
+        toast({
+          title: "Welcome back!",
+          description: "We found your details from a previous booking.",
+        });
+      } else {
+        setReturningCustomer(null);
+      }
+    } catch {
+      // Ignore lookup errors
+    } finally {
+      setLookingUp(false);
+    }
+  }, [formData.customer_email, toast]);
 
   const [participants, setParticipants] = useState<Participant[]>([
     { name: "", height: "", helmet_size: "M", dietary: "" },
@@ -237,15 +268,32 @@ export default function BookingForm({ slug, route }: Props) {
 
               <div className="space-y-2">
                 <Label htmlFor="customer_email">Email Address *</Label>
-                <Input
-                  id="customer_email"
-                  type="email"
-                  placeholder="john@example.com"
-                  value={formData.customer_email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, customer_email: e.target.value })
-                  }
-                />
+                <div className="relative">
+                  <Input
+                    id="customer_email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={formData.customer_email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, customer_email: e.target.value })
+                    }
+                    onBlur={handleEmailBlur}
+                  />
+                  {lookingUp && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />
+                  )}
+                </div>
+                {returningCustomer && (
+                  <div className="flex items-center gap-2 p-2.5 bg-green-50 border border-green-200 rounded-md">
+                    <UserCheck className="h-4 w-4 text-green-600 shrink-0" />
+                    <p className="text-xs text-green-700">
+                      Welcome back, <strong>{returningCustomer.full_name}</strong>! Your details have been filled in.
+                      {returningCustomer.total_bookings > 0 && (
+                        <span className="text-green-600"> ({returningCustomer.total_bookings} previous booking{returningCustomer.total_bookings !== 1 ? "s" : ""})</span>
+                      )}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
