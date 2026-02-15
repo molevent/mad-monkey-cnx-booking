@@ -41,6 +41,10 @@ export default function NewRoutePage() {
     discount_type: "none" as "none" | "fixed" | "percentage",
     discount_value: 0,
     discount_from_pax: 2,
+    distance_mi: null as number | null,
+    avg_speed_mph: null as number | null,
+    uphill_ft: null as number | null,
+    downhill_ft: null as number | null,
   });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -301,6 +305,88 @@ export default function NewRoutePage() {
                   )}
                 </>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Route Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Route Stats (Optional)</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                Enter ride statistics in imperial units. Metric conversions are shown automatically to visitors.
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="distance_mi">Distance (mi)</Label>
+                  <Input
+                    id="distance_mi"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="e.g., 9.62"
+                    value={formData.distance_mi ?? ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, distance_mi: e.target.value ? parseFloat(e.target.value) : null })
+                    }
+                  />
+                  {formData.distance_mi && (
+                    <p className="text-xs text-gray-400">= {(formData.distance_mi * 1.60934).toFixed(1)} km</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="avg_speed_mph">Avg Speed (mph)</Label>
+                  <Input
+                    id="avg_speed_mph"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    placeholder="e.g., 12.0"
+                    value={formData.avg_speed_mph ?? ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, avg_speed_mph: e.target.value ? parseFloat(e.target.value) : null })
+                    }
+                  />
+                  {formData.avg_speed_mph && (
+                    <p className="text-xs text-gray-400">= {(formData.avg_speed_mph * 1.60934).toFixed(1)} km/h</p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="uphill_ft">Uphill (ft)</Label>
+                  <Input
+                    id="uphill_ft"
+                    type="number"
+                    min="0"
+                    placeholder="e.g., 200"
+                    value={formData.uphill_ft ?? ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, uphill_ft: e.target.value ? parseInt(e.target.value) : null })
+                    }
+                  />
+                  {formData.uphill_ft && (
+                    <p className="text-xs text-gray-400">= {Math.round(formData.uphill_ft * 0.3048)} m</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="downhill_ft">Downhill (ft)</Label>
+                  <Input
+                    id="downhill_ft"
+                    type="number"
+                    min="0"
+                    placeholder="e.g., 4225"
+                    value={formData.downhill_ft ?? ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, downhill_ft: e.target.value ? parseInt(e.target.value) : null })
+                    }
+                  />
+                  {formData.downhill_ft && (
+                    <p className="text-xs text-gray-400">= {Math.round(formData.downhill_ft * 0.3048)} m</p>
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
 

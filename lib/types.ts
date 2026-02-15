@@ -30,6 +30,10 @@ export interface Route {
   discount_type: 'none' | 'fixed' | 'percentage'
   discount_value: number
   discount_from_pax: number
+  distance_mi: number | null
+  avg_speed_mph: number | null
+  uphill_ft: number | null
+  downhill_ft: number | null
 }
 
 export interface Customer {

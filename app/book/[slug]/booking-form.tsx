@@ -2,11 +2,13 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, Tag, UserCheck } from "lucide-react";
+import { Plus, Trash2, Loader2, Tag, UserCheck, Clock, Gauge, ArrowUp, ArrowDown, Bike } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -22,22 +24,35 @@ import { formatPrice, calculateTotalWithDiscount } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/context";
 import type { Participant, Customer } from "@/lib/types";
 
-const TIME_SLOTS = [
-  "07:00",
-  "08:00",
-  "09:00",
-  "14:00",
-  "15:00",
-];
-
 const HELMET_SIZES = ["XS", "S", "M", "L", "XL"];
 
 interface RouteInfo {
   title: string;
+  description: string | null;
+  difficulty: string;
+  duration: string | null;
   price: number;
+  cover_image_url: string | null;
   discount_type: "none" | "fixed" | "percentage";
   discount_value: number;
   discount_from_pax: number;
+  distance_mi: number | null;
+  avg_speed_mph: number | null;
+  uphill_ft: number | null;
+  downhill_ft: number | null;
+}
+
+function getDifficultyColor(difficulty: string) {
+  switch (difficulty) {
+    case "Easy":
+      return "bg-green-500/90 text-white";
+    case "Medium":
+      return "bg-yellow-500/90 text-white";
+    case "Hard":
+      return "bg-red-500/90 text-white";
+    default:
+      return "bg-gray-500/90 text-white";
+  }
 }
 
 interface Props {
@@ -56,7 +71,6 @@ export default function BookingForm({ slug, route }: Props) {
 
   const [formData, setFormData] = useState({
     tour_date: "",
-    start_time: "",
     customer_name: "",
     customer_email: "",
     customer_whatsapp: "",
@@ -135,7 +149,7 @@ export default function BookingForm({ slug, route }: Props) {
       const result = await createBooking({
         route_slug: slug,
         tour_date: formData.tour_date,
-        start_time: formData.start_time,
+        start_time: "",
         customer_name: formData.customer_name,
         customer_email: formData.customer_email,
         customer_whatsapp: formData.customer_whatsapp,
@@ -171,7 +185,6 @@ export default function BookingForm({ slug, route }: Props) {
 
   const isStep1Valid =
     formData.tour_date &&
-    formData.start_time &&
     formData.customer_name &&
     formData.customer_email;
 
@@ -180,8 +193,66 @@ export default function BookingForm({ slug, route }: Props) {
   );
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white dark:bg-background min-h-screen">
       <div className="container mx-auto px-4 py-6 max-w-2xl">
+        {/* Route Details Card */}
+        <Card className="mb-6 overflow-hidden border-orange-200/50 dark:border-border">
+          <div className="flex flex-col sm:flex-row">
+            {route.cover_image_url ? (
+              <div className="relative w-full sm:w-40 h-36 sm:h-auto shrink-0">
+                <Image
+                  src={route.cover_image_url}
+                  alt={route.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-full sm:w-40 h-36 sm:h-auto shrink-0 bg-gray-100 dark:bg-secondary flex items-center justify-center">
+                <Bike className="h-10 w-10 text-gray-300 dark:text-muted-foreground" />
+              </div>
+            )}
+            <CardContent className="p-4 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <Badge className={getDifficultyColor(route.difficulty)}>{route.difficulty}</Badge>
+                {route.duration && (
+                  <span className="text-xs text-gray-500 dark:text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> Approx. {route.duration} Hours
+                  </span>
+                )}
+              </div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-foreground mb-1">{route.title}</h2>
+              {route.description && (
+                <p className="text-xs text-gray-500 dark:text-muted-foreground line-clamp-2 mb-2">{route.description}</p>
+              )}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-muted-foreground">
+                {route.distance_mi && (
+                  <span className="flex items-center gap-1">
+                    <span className="text-gray-400">↔</span>
+                    {route.distance_mi} mi / {(route.distance_mi * 1.60934).toFixed(1)} km
+                  </span>
+                )}
+                {route.avg_speed_mph && (
+                  <span className="flex items-center gap-1">
+                    <Gauge className="h-3 w-3" /> {route.avg_speed_mph} mph
+                  </span>
+                )}
+                {route.uphill_ft && (
+                  <span className="flex items-center gap-1">
+                    <ArrowUp className="h-3 w-3 text-green-500" /> {route.uphill_ft.toLocaleString()} ft
+                  </span>
+                )}
+                {route.downhill_ft && (
+                  <span className="flex items-center gap-1">
+                    <ArrowDown className="h-3 w-3 text-red-500" /> {route.downhill_ft.toLocaleString()} ft
+                  </span>
+                )}
+              </div>
+              <p className="text-sm font-bold text-primary mt-2">{formatPrice(route.price)} <span className="text-xs font-normal text-gray-400 dark:text-muted-foreground">per person</span></p>
+            </CardContent>
+          </div>
+        </Card>
+
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center gap-4">
@@ -189,19 +260,19 @@ export default function BookingForm({ slug, route }: Props) {
               className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                 step >= 1
                   ? "bg-primary text-white"
-                  : "bg-gray-200 text-gray-500"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
               }`}
             >
               1
             </div>
             <div
-              className={`w-16 h-1 ${step >= 2 ? "bg-primary" : "bg-gray-200"}`}
+              className={`w-16 h-1 ${step >= 2 ? "bg-primary" : "bg-gray-200 dark:bg-gray-700"}`}
             />
             <div
               className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
                 step >= 2
                   ? "bg-primary text-white"
-                  : "bg-gray-200 text-gray-500"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
               }`}
             >
               2
@@ -219,39 +290,22 @@ export default function BookingForm({ slug, route }: Props) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="tour_date">{t("booking.tour_date")} *</Label>
-                  <Input
-                    id="tour_date"
-                    type="date"
-                    min={new Date().toISOString().split("T")[0]}
-                    value={formData.tour_date}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tour_date: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="start_time">{t("booking.start_time")} *</Label>
-                  <Select
-                    value={formData.start_time}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, start_time: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("booking.select_time")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TIME_SLOTS.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="tour_date">{t("booking.tour_date")} *</Label>
+                <Input
+                  id="tour_date"
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  value={formData.tour_date}
+                  onChange={(e) =>
+                    setFormData({ ...formData, tour_date: e.target.value })
+                  }
+                />
+                {route.duration && (
+                  <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                    Approx. ride time: <strong>{route.duration} Hours</strong>. Exact start time will be confirmed after booking.
+                  </p>
+                )}
               </div>
 
               <Separator />
@@ -337,7 +391,7 @@ export default function BookingForm({ slug, route }: Props) {
               </CardHeader>
               <CardContent className="space-y-6">
                 {participants.map((participant, index) => (
-                  <div key={index} className="space-y-4 p-4 bg-gray-50 dark:bg-secondary rounded-lg">
+                  <div key={index} className="space-y-4 p-4 bg-gray-50 dark:bg-secondary/50 rounded-lg">
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold">
                         {t("booking.rider")} {index + 1}
@@ -430,7 +484,7 @@ export default function BookingForm({ slug, route }: Props) {
             </Card>
 
             {/* Price Summary */}
-            <Card className="border-primary/30 bg-orange-50/50">
+            <Card className="border-primary/30 bg-orange-50/50 dark:bg-orange-950/20">
               <CardContent className="pt-6">
                 <div className="space-y-2">
                   {pricing.breakdown.map((item) => (

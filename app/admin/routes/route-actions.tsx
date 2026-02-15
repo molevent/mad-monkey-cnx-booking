@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Edit, Trash2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useI18n } from "@/lib/i18n/context";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { deleteRoute, toggleRouteActive } from "@/app/actions/routes";
 import type { Route } from "@/lib/types";
 
@@ -16,6 +18,7 @@ interface Props {
 export default function RouteActions({ route }: Props) {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useI18n();
   const [loading, setLoading] = useState<string | null>(null);
 
   const handleToggleActive = async () => {
@@ -49,37 +52,52 @@ export default function RouteActions({ route }: Props) {
 
   return (
     <div className="flex items-center gap-2 justify-end">
-      <Link href={`/admin/routes/${route.id}/edit`}>
-        <Button variant="ghost" size="sm">
-          <Edit className="h-4 w-4" />
-        </Button>
-      </Link>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleToggleActive}
-        disabled={loading !== null}
-      >
-        {loading === "toggle" ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : route.is_active ? (
-          <EyeOff className="h-4 w-4" />
-        ) : (
-          <Eye className="h-4 w-4" />
-        )}
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleDelete}
-        disabled={loading !== null}
-      >
-        {loading === "delete" ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Trash2 className="h-4 w-4 text-red-500" />
-        )}
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link href={`/admin/routes/${route.id}/edit`}>
+            <Button variant="ghost" size="sm">
+              <Edit className="h-4 w-4" />
+            </Button>
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent>{t("tip.edit_route")}</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleToggleActive}
+            disabled={loading !== null}
+          >
+            {loading === "toggle" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : route.is_active ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{t("tip.toggle_route")}</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDelete}
+            disabled={loading !== null}
+          >
+            {loading === "delete" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Trash2 className="h-4 w-4 text-red-500" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{t("tip.delete_route")}</TooltipContent>
+      </Tooltip>
     </div>
   );
 }

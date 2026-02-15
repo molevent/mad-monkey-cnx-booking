@@ -8,6 +8,7 @@ import { getEmailSettings } from "@/app/actions/email-settings";
 import { formatDate, formatTime, calculateTotalWithDiscount } from "@/lib/utils";
 import { generateQRCodeDataURL } from "@/lib/qrcode";
 import type { Participant, WaiverInfo } from "@/lib/types";
+import { logActivity } from "@/app/actions/activity-log";
 
 interface CreateBookingInput {
   route_slug: string;
@@ -115,6 +116,17 @@ export async function createBooking(input: CreateBookingInput) {
     }),
   });
 
+  // Log activity
+  await logActivity({
+    bookingId: booking.tracking_token, // We don't have the ID yet, use token temporarily
+    action: "booking_created",
+    description: `Booking created by ${input.customer_name} for ${route.title} on ${input.tour_date}`,
+    actorType: "customer",
+    actorEmail: input.customer_email,
+    level: "success",
+    metadata: { route: route.title, tour_date: input.tour_date, pax_count: input.pax_count },
+  }).catch(() => {}); // non-critical
+
   return { success: true, tracking_token: booking.tracking_token };
 }
 
@@ -167,6 +179,16 @@ export async function approveBooking(bookingId: string) {
     }),
   });
 
+  // Log activity
+  await logActivity({
+    bookingId,
+    action: "status_changed",
+    description: `Booking approved — status changed to AWAITING_PAYMENT. Payment request email sent.`,
+    actorType: "admin",
+    level: "success",
+    metadata: { old_status: "PENDING_REVIEW", new_status: "AWAITING_PAYMENT" },
+  }).catch(() => {});
+
   revalidatePath(`/track/${booking.tracking_token}`);
   revalidatePath("/admin/bookings");
 
@@ -218,6 +240,16 @@ export async function confirmBooking(bookingId: string) {
     }),
   });
 
+  // Log activity
+  await logActivity({
+    bookingId,
+    action: "status_changed",
+    description: `Booking confirmed. Confirmation email with QR code sent to ${booking.customer_email}.`,
+    actorType: "admin",
+    level: "success",
+    metadata: { old_status: booking.status, new_status: "CONFIRMED" },
+  }).catch(() => {});
+
   revalidatePath(`/track/${booking.tracking_token}`);
   revalidatePath("/admin/bookings");
 
@@ -242,6 +274,16 @@ export async function cancelBooking(bookingId: string) {
     return { error: "Failed to cancel booking" };
   }
 
+  // Log activity
+  await logActivity({
+    bookingId,
+    action: "status_changed",
+    description: `Booking cancelled by admin.`,
+    actorType: "admin",
+    level: "warning",
+    metadata: { new_status: "CANCELLED" },
+  }).catch(() => {});
+
   if (booking?.tracking_token) {
     revalidatePath(`/track/${booking.tracking_token}`);
   }
@@ -261,6 +303,14 @@ export async function updateBookingNotes(bookingId: string, notes: string) {
   if (error) {
     return { error: "Failed to update notes" };
   }
+
+  await logActivity({
+    bookingId,
+    action: "notes_updated",
+    description: `Admin notes updated.`,
+    actorType: "admin",
+    level: "info",
+  }).catch(() => {});
 
   return { success: true };
 }
@@ -299,6 +349,15 @@ export async function markPaymentStatus(
     return { error: "Failed to update payment status" };
   }
 
+  await logActivity({
+    bookingId,
+    action: "payment_updated",
+    description: `Payment marked as ${status === "fully_paid" ? "fully paid" : "deposit paid"} — ฿${amountPaid.toLocaleString()}`,
+    actorType: "admin",
+    level: "success",
+    metadata: { payment_status: status, amount_paid: amountPaid },
+  }).catch(() => {});
+
   revalidatePath("/admin/bookings");
   revalidatePath(`/admin/bookings/${bookingId}`);
 
@@ -316,6 +375,14 @@ export async function checkInBooking(bookingId: string) {
   if (error) {
     return { error: "Failed to check in booking" };
   }
+
+  await logActivity({
+    bookingId,
+    action: "checked_in",
+    description: `Customer checked in.`,
+    actorType: "admin",
+    level: "success",
+  }).catch(() => {});
 
   revalidatePath("/admin/bookings");
   revalidatePath(`/admin/bookings/${bookingId}`);
@@ -335,6 +402,14 @@ export async function undoCheckIn(bookingId: string) {
   if (error) {
     return { error: "Failed to undo check-in" };
   }
+
+  await logActivity({
+    bookingId,
+    action: "check_in_undone",
+    description: `Check-in reversed by admin.`,
+    actorType: "admin",
+    level: "warning",
+  }).catch(() => {});
 
   revalidatePath("/admin/bookings");
   revalidatePath(`/admin/bookings/${bookingId}`);
@@ -384,8 +459,26 @@ export async function updateBookingDetails(
 
   if (error) {
     console.error("Update booking error:", error);
+    await logActivity({
+      bookingId,
+      action: "update_failed",
+      description: `Failed to update booking: ${error.message}`,
+      actorType: "admin",
+      level: "error",
+      metadata: { error: error.message, attempted_updates: updates },
+    }).catch(() => {});
     return { error: "Failed to update booking" };
   }
+
+  const fields = Object.keys(updates).join(", ");
+  await logActivity({
+    bookingId,
+    action: "details_updated",
+    description: `Booking details updated: ${fields}`,
+    actorType: "admin",
+    level: "info",
+    metadata: { updated_fields: updates },
+  }).catch(() => {});
 
   revalidatePath("/admin/bookings");
   revalidatePath(`/admin/bookings/${bookingId}`);
@@ -404,6 +497,17 @@ export async function updateBookingTotal(bookingId: string, customTotal: number 
   if (error) {
     return { error: "Failed to update total amount" };
   }
+
+  await logActivity({
+    bookingId,
+    action: "total_updated",
+    description: customTotal !== null
+      ? `Total amount manually set to ฿${customTotal.toLocaleString()}`
+      : `Total amount reset to calculated value`,
+    actorType: "admin",
+    level: "info",
+    metadata: { custom_total: customTotal },
+  }).catch(() => {});
 
   revalidatePath("/admin/bookings");
   revalidatePath(`/admin/bookings/${bookingId}`);
@@ -501,4 +605,41 @@ export async function sendWaiverEmailToParticipant(
   });
 
   return { success: true };
+}
+
+export async function deleteBooking(bookingId: string) {
+  const supabase = createServiceRoleClient();
+
+  // Get booking info before deleting
+  const { data: booking } = await supabase
+    .from("bookings")
+    .select("customer_name, customer_email, tour_date, route:routes(title), tracking_token")
+    .eq("id", bookingId)
+    .single();
+
+  if (!booking) {
+    return { error: "Booking not found" };
+  }
+
+  const { error } = await supabase
+    .from("bookings")
+    .delete()
+    .eq("id", bookingId);
+
+  if (error) {
+    console.error("Delete booking error:", error);
+    return { error: "Failed to delete booking" };
+  }
+
+  revalidatePath("/admin/bookings");
+
+  return {
+    success: true,
+    deleted: {
+      customer_name: booking.customer_name,
+      customer_email: booking.customer_email,
+      tour_date: booking.tour_date,
+      route_title: (booking.route as any)?.title,
+    },
+  };
 }

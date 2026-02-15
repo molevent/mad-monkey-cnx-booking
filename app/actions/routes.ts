@@ -17,6 +17,10 @@ interface RouteInput {
   discount_type?: 'none' | 'fixed' | 'percentage';
   discount_value?: number;
   discount_from_pax?: number;
+  distance_mi?: number | null;
+  avg_speed_mph?: number | null;
+  uphill_ft?: number | null;
+  downhill_ft?: number | null;
 }
 
 export async function createRoute(input: RouteInput) {
@@ -63,6 +67,10 @@ export async function createRoute(input: RouteInput) {
       discount_type: input.discount_type || 'none',
       discount_value: input.discount_value || 0,
       discount_from_pax: input.discount_from_pax || 2,
+      distance_mi: input.distance_mi || null,
+      avg_speed_mph: input.avg_speed_mph || null,
+      uphill_ft: input.uphill_ft || null,
+      downhill_ft: input.downhill_ft || null,
     };
 
     const { data, error } = await supabase

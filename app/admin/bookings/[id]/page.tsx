@@ -11,6 +11,8 @@ import BookingActions from "./booking-actions";
 import BookingEditForm from "./booking-edit-form";
 import BookingSummary from "./booking-summary";
 import PaymentStatus from "./payment-status";
+import ActivityLog from "./activity-log";
+import { getBookingActivityLog } from "@/app/actions/activity-log";
 import type { Booking } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -93,9 +95,10 @@ export default async function BookingDetailPage({
 }: {
   params: { id: string };
 }) {
-  const [booking, routes] = await Promise.all([
+  const [booking, routes, activityLog] = await Promise.all([
     getBooking(params.id),
     getRoutes(),
+    getBookingActivityLog(params.id),
   ]);
 
   if (!booking) {
@@ -247,6 +250,11 @@ export default async function BookingDetailPage({
 
           <BookingActions booking={booking} />
         </div>
+      </div>
+
+      {/* Activity Log - Full Width */}
+      <div className="mt-6">
+        <ActivityLog activities={activityLog} />
       </div>
     </div>
   );
