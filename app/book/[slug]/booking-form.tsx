@@ -172,10 +172,10 @@ export default function BookingForm({ slug, route }: Props) {
       });
 
       router.push(`/track/${result.tracking_token}`);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: t("common.error"),
-        description: t("common.something_wrong"),
+        description: error?.message || t("common.something_wrong"),
         variant: "destructive",
       });
     } finally {

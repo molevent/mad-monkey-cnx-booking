@@ -81,7 +81,7 @@ export async function createBooking(input: CreateBookingInput) {
     .insert({
       route_id: route.id,
       tour_date: input.tour_date,
-      start_time: input.start_time,
+      start_time: input.start_time || null,
       customer_name: input.customer_name,
       customer_email: input.customer_email,
       customer_whatsapp: input.customer_whatsapp,
@@ -95,7 +95,7 @@ export async function createBooking(input: CreateBookingInput) {
 
   if (bookingError) {
     console.error("Booking error:", bookingError);
-    return { error: "Failed to create booking" };
+    return { error: `Failed to create booking: ${bookingError.message}` };
   }
 
   // Send acknowledgement email
