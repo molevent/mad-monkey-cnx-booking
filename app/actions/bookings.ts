@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createServiceRoleClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/transport";
-import { acknowledgementEmail, paymentRequestEmail, confirmationEmail } from "@/lib/email/templates";
+import { acknowledgementEmail, paymentRequestEmail, paymentReceivedEmail, confirmationEmail } from "@/lib/email/templates";
 import { getEmailSettings } from "@/app/actions/email-settings";
 import { formatDate, formatTime, calculateTotalWithDiscount } from "@/lib/utils";
 import { generateQRCodeDataURL } from "@/lib/qrcode";
@@ -392,6 +392,17 @@ export async function markPaymentStatus(
 ) {
   const supabase = createServiceRoleClient();
 
+  // Fetch booking with route details for email
+  const { data: booking, error: fetchError } = await supabase
+    .from("bookings")
+    .select("*, route:routes(*)")
+    .eq("id", bookingId)
+    .single();
+
+  if (fetchError || !booking) {
+    return { error: "Booking not found" };
+  }
+
   const { error } = await supabase
     .from("bookings")
     .update({ payment_status: status, amount_paid: amountPaid })
@@ -401,10 +412,41 @@ export async function markPaymentStatus(
     return { error: "Failed to update payment status" };
   }
 
+  // Send payment received email with next step
+  try {
+    const trackingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/track/${booking.tracking_token}`;
+    const calculatedTotal = calculateTotalWithDiscount(
+      booking.route.price,
+      booking.pax_count,
+      booking.route.discount_type || 'none',
+      booking.route.discount_value || 0,
+      booking.route.discount_from_pax || 2
+    ).total;
+    const totalAmount = booking.custom_total ?? calculatedTotal;
+    const emailSettings = await getEmailSettings();
+
+    await sendEmail({
+      to: booking.customer_email,
+      subject: `Payment Received — Next Step: Sign Waiver | ${emailSettings.company_name}`,
+      html: paymentReceivedEmail({
+        customerName: booking.customer_name,
+        routeTitle: booking.route.title,
+        tourDate: formatDate(booking.tour_date),
+        amountPaid,
+        totalAmount,
+        paymentType: status,
+        trackingUrl,
+        settings: emailSettings,
+      }),
+    });
+  } catch (emailErr) {
+    console.error("Failed to send payment received email:", emailErr);
+  }
+
   await logActivity({
     bookingId,
     action: "payment_updated",
-    description: `Payment marked as ${status === "fully_paid" ? "fully paid" : "deposit paid"} — ฿${amountPaid.toLocaleString()}`,
+    description: `Payment marked as ${status === "fully_paid" ? "fully paid" : "deposit paid"} — ฿${amountPaid.toLocaleString()}. Payment received email sent.`,
     actorType: "admin",
     level: "success",
     metadata: { payment_status: status, amount_paid: amountPaid },
@@ -412,6 +454,7 @@ export async function markPaymentStatus(
 
   revalidatePath("/admin/bookings");
   revalidatePath(`/admin/bookings/${bookingId}`);
+  revalidatePath(`/track/${booking.tracking_token}`);
 
   return { success: true };
 }

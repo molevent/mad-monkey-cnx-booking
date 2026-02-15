@@ -239,6 +239,60 @@ export function paymentRequestEmail({
   return emailLayout(heading, 'Booking Approved — Payment Required', content, settings)
 }
 
+export function paymentReceivedEmail({
+  customerName,
+  routeTitle,
+  tourDate,
+  amountPaid,
+  totalAmount,
+  paymentType,
+  trackingUrl,
+  settings = defaultEmailSettings,
+}: {
+  customerName: string
+  routeTitle: string
+  tourDate: string
+  amountPaid: number
+  totalAmount: number
+  paymentType: 'deposit_paid' | 'fully_paid'
+  trackingUrl: string
+  settings?: EmailSettings
+}) {
+  const heading = `Thank you for your payment, ${customerName}!`
+  const isDeposit = paymentType === 'deposit_paid'
+  const remaining = totalAmount - amountPaid
+
+  const paymentSummary = isDeposit
+    ? `We have received your deposit of <strong>฿${amountPaid.toLocaleString()}</strong>. The remaining balance of <strong>฿${remaining.toLocaleString()}</strong> can be completed online or paid at the venue on the day of your tour.`
+    : `We have received your full payment of <strong>฿${amountPaid.toLocaleString()}</strong>. You're all set!`
+
+  const nextStepText = `Please complete the liability waiver for all participants before your tour. You can do this online via the link below.`
+
+  const content = `
+    <p style="margin:0 0 20px;font-size:15px;color:#4b5563;line-height:1.6;">${paymentSummary}</p>
+    ${infoBox('Payment Summary',
+      infoRow('Tour', routeTitle) +
+      infoRow('Date', tourDate) +
+      infoRow('Amount Paid', '฿' + amountPaid.toLocaleString()) +
+      (isDeposit ? infoRow('Remaining Balance', '฿' + remaining.toLocaleString()) : '') +
+      infoRow('Status', isDeposit ? 'Deposit Received' : 'Fully Paid'),
+      '#22c55e'
+    )}
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;">
+      <tr>
+        <td style="background:#eff6ff;padding:20px;border-radius:8px;border:1px solid #bfdbfe;border-left:4px solid #3b82f6;">
+          <p style="margin:0 0 8px;font-size:14px;font-weight:700;color:#1e40af;">Next Step: Sign Liability Waiver</p>
+          <p style="margin:0;font-size:13px;color:#1e3a5f;line-height:1.5;">${nextStepText}</p>
+        </td>
+      </tr>
+    </table>
+    ${ctaButton('Sign Waiver Now', trackingUrl)}
+    <p style="font-size:13px;color:#6b7280;">If you have any questions, reply to this email${settings.company_whatsapp ? ' or contact us on WhatsApp at ' + settings.company_whatsapp : ''}.</p>
+  `
+
+  return emailLayout(heading, 'Payment Received — Next Step', content, settings)
+}
+
 export function confirmationEmail({
   customerName,
   routeTitle,
