@@ -186,7 +186,7 @@ export function acknowledgementEmail({
     ${infoBox('Booking Details',
       infoRow('Tour', routeTitle) +
       infoRow('Date', tourDate) +
-      infoRow('Start Time', startTime) +
+      (startTime && startTime !== 'To be confirmed' ? infoRow('Start Time', startTime) : '') +
       infoRow('Riders', String(paxCount))
     )}
     <p style="font-size:14px;color:#4b5563;">You can track your booking status anytime:</p>
@@ -284,7 +284,7 @@ export function confirmationEmail({
     ${infoBox('Your Booking',
       infoRow('Tour', routeTitle) +
       infoRow('Date', tourDate) +
-      infoRow('Start Time', startTime) +
+      (startTime && startTime !== 'To be confirmed' ? infoRow('Start Time', startTime) : '') +
       (bookingRef ? infoRow('Booking Ref', bookingRef) : '')
     )}
     ${qrSection}

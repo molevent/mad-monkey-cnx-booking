@@ -81,7 +81,7 @@ export async function createBooking(input: CreateBookingInput) {
     .insert({
       route_id: route.id,
       tour_date: input.tour_date,
-      start_time: input.start_time || null,
+      start_time: input.start_time || "00:00",
       customer_name: input.customer_name,
       customer_email: input.customer_email,
       customer_whatsapp: input.customer_whatsapp,

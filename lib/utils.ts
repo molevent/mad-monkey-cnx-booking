@@ -15,8 +15,10 @@ export function formatDate(date: string): string {
 }
 
 export function formatTime(time: string): string {
+  if (!time || time === '00:00' || time === '00:00:00') return 'To be confirmed'
   const [hours, minutes] = time.split(':')
   const hour = parseInt(hours)
+  if (isNaN(hour)) return 'To be confirmed'
   const ampm = hour >= 12 ? 'PM' : 'AM'
   const hour12 = hour % 12 || 12
   return `${hour12}:${minutes} ${ampm}`

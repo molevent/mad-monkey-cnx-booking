@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, Tag, UserCheck, Clock, Gauge, ArrowUp, ArrowDown, Bike } from "lucide-react";
+import { Plus, Trash2, Loader2, Tag, UserCheck, Clock, Gauge, ArrowUp, ArrowDown, Bike, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +68,7 @@ export default function BookingForm({ slug, route }: Props) {
   const [step, setStep] = useState(1);
   const [returningCustomer, setReturningCustomer] = useState<Customer | null>(null);
   const [lookingUp, setLookingUp] = useState(false);
+  const [pdpaConsent, setPdpaConsent] = useState(false);
 
   const [formData, setFormData] = useState({
     tour_date: "",
@@ -519,6 +520,39 @@ export default function BookingForm({ slug, route }: Props) {
               </CardContent>
             </Card>
 
+            {/* PDPA Consent */}
+            <div className="p-4 bg-gray-50 dark:bg-secondary/50 rounded-lg border border-gray-200 dark:border-border">
+              <div className="flex items-start gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPdpaConsent(!pdpaConsent)}
+                  className={`mt-0.5 shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                    pdpaConsent
+                      ? "bg-primary border-primary text-white"
+                      : "border-gray-300 dark:border-gray-600 bg-white dark:bg-background"
+                  }`}
+                >
+                  {pdpaConsent && (
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+                <div className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                    <span className="font-semibold text-gray-800 dark:text-foreground">Personal Data Protection (PDPA)</span>
+                  </div>
+                  <p>
+                    I consent to the collection and use of my personal data (name, email, WhatsApp, height, dietary requirements) 
+                    for the purpose of processing this booking, preparing equipment, and communicating tour details. 
+                    Your data will not be shared with third parties and will be stored securely. 
+                    You may request deletion of your data at any time by contacting us.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="flex gap-4">
               <Button
                 variant="outline"
@@ -530,7 +564,7 @@ export default function BookingForm({ slug, route }: Props) {
               <Button
                 className="flex-1"
                 size="lg"
-                disabled={!isStep2Valid || loading}
+                disabled={!isStep2Valid || !pdpaConsent || loading}
                 onClick={handleSubmit}
               >
                 {loading ? (
