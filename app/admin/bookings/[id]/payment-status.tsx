@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, Loader2, Banknote, AlertCircle } from "lucide-react";
+import { CheckCircle, Loader2, Banknote, AlertCircle, Pencil } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { markPaymentStatus } from "@/app/actions/bookings";
+import { markPaymentStatus, correctPaymentStatus } from "@/app/actions/bookings";
+import { Input } from "@/components/ui/input";
 import { formatPrice } from "@/lib/utils";
 
 interface Props {
@@ -41,9 +42,31 @@ export default function PaymentStatus({
   const [loading, setLoading] = useState<string | null>(null);
   const [showDepositDialog, setShowDepositDialog] = useState(false);
   const [showFullPayDialog, setShowFullPayDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editStatus, setEditStatus] = useState<string>(paymentStatus);
+  const [editAmount, setEditAmount] = useState<string>(String(amountPaid));
 
   const depositAmount = Math.ceil(totalAmount * 0.5);
   const remaining = totalAmount - amountPaid;
+
+  const handleCorrectStatus = async () => {
+    setShowEditDialog(false);
+    setLoading("correct");
+    try {
+      const result = await correctPaymentStatus(
+        bookingId,
+        editStatus as 'unpaid' | 'deposit_paid' | 'fully_paid',
+        Number(editAmount) || 0
+      );
+      if (result.error) throw new Error(result.error);
+      toast({ title: "Updated", description: `Payment status corrected to ${result.statusLabel}` });
+      router.refresh();
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(null);
+    }
+  };
 
   const handleMarkDeposit = async () => {
     setShowDepositDialog(false);
@@ -99,9 +122,23 @@ export default function PaymentStatus({
     <>
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
-          <Banknote className="h-5 w-5" />
-          Payment Status
+        <CardTitle className="flex items-center justify-between">
+          <span className="flex items-center gap-2">
+            <Banknote className="h-5 w-5" />
+            Payment Status
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600"
+            onClick={() => {
+              setEditStatus(paymentStatus);
+              setEditAmount(String(amountPaid));
+              setShowEditDialog(true);
+            }}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -195,6 +232,71 @@ export default function PaymentStatus({
         )}
       </CardContent>
     </Card>
+
+    {/* Edit Payment Status Dialog */}
+    <AlertDialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <Pencil className="h-5 w-5 text-orange-500" />
+            Correct Payment Status
+          </AlertDialogTitle>
+          <AlertDialogDescription asChild>
+            <div className="space-y-4 pt-2">
+              <p className="text-sm text-muted-foreground">Use this to fix payment status in case of human error. No email will be sent.</p>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Payment Status</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    type="button"
+                    variant={editStatus === 'unpaid' ? 'default' : 'outline'}
+                    size="sm"
+                    className={editStatus === 'unpaid' ? 'bg-red-600 hover:bg-red-700' : ''}
+                    onClick={() => { setEditStatus('unpaid'); setEditAmount('0'); }}
+                  >
+                    Unpaid
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={editStatus === 'deposit_paid' ? 'default' : 'outline'}
+                    size="sm"
+                    className={editStatus === 'deposit_paid' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}
+                    onClick={() => { setEditStatus('deposit_paid'); setEditAmount(String(depositAmount)); }}
+                  >
+                    Deposit
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={editStatus === 'fully_paid' ? 'default' : 'outline'}
+                    size="sm"
+                    className={editStatus === 'fully_paid' ? 'bg-green-600 hover:bg-green-700' : ''}
+                    onClick={() => { setEditStatus('fully_paid'); setEditAmount(String(totalAmount)); }}
+                  >
+                    Fully Paid
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">Amount Paid (฿)</label>
+                <Input
+                  type="number"
+                  value={editAmount}
+                  onChange={(e) => setEditAmount(e.target.value)}
+                  min={0}
+                  max={totalAmount}
+                />
+              </div>
+            </div>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleCorrectStatus} className="bg-orange-600 hover:bg-orange-700 text-white">
+            Yes, Correct Status
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
 
     {/* Mark Deposit Paid Dialog */}
     <AlertDialog open={showDepositDialog} onOpenChange={setShowDepositDialog}>

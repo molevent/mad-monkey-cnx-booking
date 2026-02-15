@@ -459,6 +459,50 @@ export async function markPaymentStatus(
   return { success: true };
 }
 
+export async function correctPaymentStatus(
+  bookingId: string,
+  status: 'unpaid' | 'deposit_paid' | 'fully_paid',
+  amountPaid: number
+) {
+  const supabase = createServiceRoleClient();
+
+  const { data: booking, error: fetchError } = await supabase
+    .from("bookings")
+    .select("tracking_token, payment_status")
+    .eq("id", bookingId)
+    .single();
+
+  if (fetchError || !booking) {
+    return { error: "Booking not found" };
+  }
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({ payment_status: status, amount_paid: amountPaid })
+    .eq("id", bookingId);
+
+  if (error) {
+    return { error: "Failed to update payment status" };
+  }
+
+  const statusLabel = status === 'fully_paid' ? 'Fully Paid' : status === 'deposit_paid' ? 'Deposit Paid' : 'Unpaid';
+
+  await logActivity({
+    bookingId,
+    action: "payment_corrected",
+    description: `Payment status manually corrected: ${booking.payment_status} → ${status} (฿${amountPaid.toLocaleString()}). No email sent.`,
+    actorType: "admin",
+    level: "warning",
+    metadata: { old_status: booking.payment_status, new_status: status, amount_paid: amountPaid },
+  }).catch(() => {});
+
+  revalidatePath("/admin/bookings");
+  revalidatePath(`/admin/bookings/${bookingId}`);
+  revalidatePath(`/track/${booking.tracking_token}`);
+
+  return { success: true, statusLabel };
+}
+
 export async function checkInBooking(bookingId: string) {
   const supabase = createServiceRoleClient();
 
