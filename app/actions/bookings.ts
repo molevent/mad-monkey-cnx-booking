@@ -195,6 +195,58 @@ export async function approveBooking(bookingId: string) {
   return { success: true };
 }
 
+export async function resendPaymentEmail(bookingId: string) {
+  const supabase = createServiceRoleClient();
+
+  const { data: booking, error: fetchError } = await supabase
+    .from("bookings")
+    .select("*, route:routes(*)")
+    .eq("id", bookingId)
+    .single();
+
+  if (fetchError || !booking) {
+    return { error: "Booking not found" };
+  }
+
+  if (booking.status !== "AWAITING_PAYMENT") {
+    return { error: "Booking is not in AWAITING_PAYMENT status" };
+  }
+
+  const paymentUrl = `${process.env.NEXT_PUBLIC_APP_URL}/track/${booking.tracking_token}`;
+  const calculatedTotal = calculateTotalWithDiscount(
+    booking.route.price,
+    booking.pax_count,
+    booking.route.discount_type || 'none',
+    booking.route.discount_value || 0,
+    booking.route.discount_from_pax || 2
+  ).total;
+  const totalAmount = booking.custom_total ?? calculatedTotal;
+  const emailSettings = await getEmailSettings();
+
+  await sendEmail({
+    to: booking.customer_email,
+    subject: emailSettings.payment_subject,
+    html: paymentRequestEmail({
+      customerName: booking.customer_name,
+      routeTitle: booking.route.title,
+      tourDate: formatDate(booking.tour_date),
+      totalAmount,
+      paymentUrl,
+      settings: emailSettings,
+    }),
+  });
+
+  await logActivity({
+    bookingId,
+    action: "email_sent",
+    description: `Payment request email resent to ${booking.customer_email}.`,
+    actorType: "admin",
+    level: "info",
+  }).catch(() => {});
+
+  return { success: true, email: booking.customer_email };
+}
+
 export async function confirmBooking(bookingId: string) {
   const supabase = createServiceRoleClient();
 
@@ -317,7 +369,7 @@ export async function updateBookingNotes(bookingId: string, notes: string) {
 
 export async function setPaymentOption(
   bookingId: string,
-  paymentOption: 'deposit_50' | 'full_100' | 'pay_at_venue'
+  paymentOption: 'deposit_50' | 'full_100'
 ) {
   const supabase = createServiceRoleClient();
 

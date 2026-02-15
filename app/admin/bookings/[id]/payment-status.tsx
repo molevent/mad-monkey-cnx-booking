@@ -8,6 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { markPaymentStatus } from "@/app/actions/bookings";
 import { formatPrice } from "@/lib/utils";
 
@@ -29,11 +39,14 @@ export default function PaymentStatus({
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
+  const [showDepositDialog, setShowDepositDialog] = useState(false);
+  const [showFullPayDialog, setShowFullPayDialog] = useState(false);
 
   const depositAmount = Math.ceil(totalAmount * 0.5);
   const remaining = totalAmount - amountPaid;
 
   const handleMarkDeposit = async () => {
+    setShowDepositDialog(false);
     setLoading("deposit");
     try {
       const result = await markPaymentStatus(bookingId, "deposit_paid", depositAmount);
@@ -48,6 +61,7 @@ export default function PaymentStatus({
   };
 
   const handleMarkFullyPaid = async () => {
+    setShowFullPayDialog(false);
     setLoading("full");
     try {
       const result = await markPaymentStatus(bookingId, "fully_paid", totalAmount);
@@ -82,6 +96,7 @@ export default function PaymentStatus({
   };
 
   return (
+    <>
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
@@ -143,7 +158,7 @@ export default function PaymentStatus({
               <Button
                 variant="outline"
                 className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-50"
-                onClick={handleMarkDeposit}
+                onClick={() => setShowDepositDialog(true)}
                 disabled={loading !== null}
               >
                 {loading === "deposit" ? (
@@ -157,7 +172,7 @@ export default function PaymentStatus({
 
             <Button
               className="w-full bg-green-600 hover:bg-green-700"
-              onClick={handleMarkFullyPaid}
+              onClick={() => setShowFullPayDialog(true)}
               disabled={loading !== null}
             >
               {loading === "full" ? (
@@ -180,5 +195,48 @@ export default function PaymentStatus({
         )}
       </CardContent>
     </Card>
+
+    {/* Mark Deposit Paid Dialog */}
+    <AlertDialog open={showDepositDialog} onOpenChange={setShowDepositDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-yellow-600" />
+            Mark Deposit Paid?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            This will mark the booking as deposit paid with amount <strong className="text-foreground">{formatPrice(depositAmount)}</strong>. Are you sure?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleMarkDeposit} className="bg-yellow-600 hover:bg-yellow-700 text-white">
+            Yes, Mark Deposit Paid
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    {/* Mark Fully Paid Dialog */}
+    <AlertDialog open={showFullPayDialog} onOpenChange={setShowFullPayDialog}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-green-600" />
+            Mark Fully Paid?
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            This will mark the booking as fully paid with amount <strong className="text-foreground">{formatPrice(totalAmount)}</strong>. Are you sure?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleMarkFullyPaid} className="bg-green-600 hover:bg-green-700 text-white">
+            Yes, Mark Fully Paid
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

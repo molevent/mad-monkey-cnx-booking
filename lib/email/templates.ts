@@ -30,7 +30,7 @@ export const defaultEmailSettings: EmailSettings = {
   company_whatsapp: "",
   company_email: "booking@madmonkeycnx.com",
   bank_name: "Siam Commercial Bank (SCB)",
-  bank_account_name: "Nuthawut Tharatjai",
+  bank_account_name: "Mr. Nuthawut Tharatjai",
   bank_account_number: "406-7-61675-7",
   bank_swift_code: "SICOQHBK",
   meeting_point: "Mad Monkey eBike HQ, 123 Cycling Lane, Chiang Mai",
@@ -42,7 +42,7 @@ export const defaultEmailSettings: EmailSettings = {
   payment_subject: "Payment Required - Mad Monkey eBike Tours",
   payment_heading: "Great news, {{customer_name}}!",
   payment_body: "Your booking has been approved! To confirm your spot, please complete the payment and sign the liability waiver.",
-  payment_deadline: "48 hours",
+  payment_deadline: "24 hours",
   confirmation_subject: "Booking Confirmed! - Mad Monkey eBike Tours",
   confirmation_heading: "See you soon, {{customer_name}}!",
   confirmation_body: "Your booking is now fully confirmed. We can't wait to show you the beautiful trails of Chiang Mai!",
@@ -141,9 +141,8 @@ function paymentOptionsBlock(totalAmount: number): string {
     <tr>
       <td style="background:#fffbeb;padding:20px;border-radius:8px;border:1px solid #fde68a;border-left:4px solid #F58020;">
         <p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#92400e;">Payment Options</p>
-        <p style="margin:4px 0;font-size:13px;color:#78350f;">1. <strong>50% Deposit:</strong> Pay ${fmt(deposit)} now, remaining ${fmt(totalAmount - deposit)} before tour or at venue</p>
+        <p style="margin:4px 0;font-size:13px;color:#78350f;">1. <strong>50% Deposit:</strong> Pay ${fmt(deposit)} now, remaining ${fmt(totalAmount - deposit)} can be completed online or paid at the venue</p>
         <p style="margin:4px 0;font-size:13px;color:#78350f;">2. <strong>Full Payment (100%):</strong> Pay ${fmt(totalAmount)} now</p>
-        <p style="margin:4px 0;font-size:13px;color:#78350f;">3. <strong>Pay at Venue:</strong> Pay the full amount at check-in on the day</p>
       </td>
     </tr>
   </table>`

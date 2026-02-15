@@ -26,6 +26,7 @@ import {
   updateBookingNotes,
   deleteBooking,
   sendBookingDetailsEmail,
+  resendPaymentEmail,
 } from "@/app/actions/bookings";
 import type { Booking } from "@/lib/types";
 
@@ -41,8 +42,13 @@ export default function BookingActions({ booking }: Props) {
   const [notes, setNotes] = useState(booking.admin_notes || "");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showResendPaymentDialog, setShowResendPaymentDialog] = useState(false);
+  const [showSendEmailDialog, setShowSendEmailDialog] = useState(false);
 
   const handleApprove = async () => {
+    setShowApproveDialog(false);
     setLoading("approve");
     const result = await approveBooking(booking.id);
     if (result.error) {
@@ -55,6 +61,7 @@ export default function BookingActions({ booking }: Props) {
   };
 
   const handleConfirm = async () => {
+    setShowConfirmDialog(false);
     setLoading("confirm");
     const result = await confirmBooking(booking.id);
     if (result.error) {
@@ -64,14 +71,6 @@ export default function BookingActions({ booking }: Props) {
       router.refresh();
     }
     setLoading(null);
-  };
-
-  const handleCancel = async () => {
-    setShowCancelDialog(true);
-  };
-
-  const handleDelete = async () => {
-    setShowDeleteDialog(true);
   };
 
   const handleCancelBooking = async () => {
@@ -101,12 +100,25 @@ export default function BookingActions({ booking }: Props) {
   };
 
   const handleSendEmail = async () => {
+    setShowSendEmailDialog(false);
     setLoading("email");
     const result = await sendBookingDetailsEmail(booking.id);
     if (result.error) {
       toast({ title: "Error", description: result.error, variant: "destructive" });
     } else {
       toast({ title: "Email Sent", description: `Booking details sent to ${result.email}` });
+    }
+    setLoading(null);
+  };
+
+  const handleResendPaymentEmail = async () => {
+    setShowResendPaymentDialog(false);
+    setLoading("payment_email");
+    const result = await resendPaymentEmail(booking.id);
+    if (result.error) {
+      toast({ title: "Error", description: result.error, variant: "destructive" });
+    } else {
+      toast({ title: "Email Sent", description: `Payment request email sent to ${result.email}` });
     }
     setLoading(null);
   };
@@ -134,7 +146,7 @@ export default function BookingActions({ booking }: Props) {
               <TooltipTrigger asChild>
                 <Button
                   className="w-full"
-                  onClick={handleApprove}
+                  onClick={() => setShowApproveDialog(true)}
                   disabled={loading !== null}
                 >
                   {loading === "approve" ? (
@@ -149,12 +161,33 @@ export default function BookingActions({ booking }: Props) {
             </Tooltip>
           )}
 
+          {booking.status === "AWAITING_PAYMENT" && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setShowResendPaymentDialog(true)}
+                  disabled={loading !== null}
+                >
+                  {loading === "payment_email" ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Mail className="h-4 w-4 mr-2" />
+                  )}
+                  Resend Payment Request Email
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Resend payment request email with tracking link to customer</TooltipContent>
+            </Tooltip>
+          )}
+
           {booking.status === "PAYMENT_UPLOADED" && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   className="w-full"
-                  onClick={handleConfirm}
+                  onClick={() => setShowConfirmDialog(true)}
                   disabled={loading !== null}
                 >
                   {loading === "confirm" ? (
@@ -208,7 +241,7 @@ export default function BookingActions({ booking }: Props) {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={handleSendEmail}
+                  onClick={() => setShowSendEmailDialog(true)}
                   disabled={loading !== null}
                 >
                   {loading === "email" ? (
@@ -243,6 +276,90 @@ export default function BookingActions({ booking }: Props) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Approve Booking Dialog */}
+      <AlertDialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5 text-primary" />
+              Approve Booking?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will approve the booking for <strong className="text-foreground">{booking.customer_name}</strong> and send a payment request email to <strong className="text-foreground">{booking.customer_email}</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleApprove}>
+              Yes, Approve & Send Email
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm Booking Dialog */}
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              Confirm Booking?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will confirm the booking for <strong className="text-foreground">{booking.customer_name}</strong> and send a confirmation email to <strong className="text-foreground">{booking.customer_email}</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm} className="bg-green-600 hover:bg-green-700 text-white">
+              Yes, Confirm Booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Resend Payment Email Dialog */}
+      <AlertDialog open={showResendPaymentDialog} onOpenChange={setShowResendPaymentDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Resend Payment Request Email?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will resend the payment request email with tracking link to <strong className="text-foreground">{booking.customer_email}</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleResendPaymentEmail}>
+              Yes, Send Email
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Send Booking Details Email Dialog */}
+      <AlertDialog open={showSendEmailDialog} onOpenChange={setShowSendEmailDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Send Booking Details Email?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will send the booking details email to <strong className="text-foreground">{booking.customer_email}</strong>.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSendEmail}>
+              Yes, Send Email
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Cancel Booking Dialog */}
       <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>

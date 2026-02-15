@@ -15,6 +15,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { uploadPaymentSlip, uploadWaiverSignature } from "@/app/actions/uploads";
 import { saveWaiverInfo, sendWaiverEmailToParticipant, setPaymentOption } from "@/app/actions/bookings";
 import { formatPrice } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n/context";
 import type { Participant, WaiverInfo } from "@/lib/types";
 
 interface BankInfo {
@@ -31,6 +32,8 @@ interface Props {
   existingWaivers: WaiverInfo[] | null;
   totalAmount: number;
   existingPaymentOption: string | null;
+  tourDate: string;
+  section?: "payment" | "waivers";
   bankInfo?: BankInfo;
 }
 
@@ -58,9 +61,10 @@ interface ParticipantWaiverState {
   completed: boolean;
 }
 
-export default function PaymentWaiverForm({ bookingId, trackingToken, participants, existingWaivers, totalAmount, existingPaymentOption, bankInfo }: Props) {
+export default function PaymentWaiverForm({ bookingId, trackingToken, participants, existingWaivers, totalAmount, existingPaymentOption, tourDate, section = "payment", bankInfo }: Props) {
   const router = useRouter();
   const { toast } = useToast();
+  const { t } = useI18n();
   const signatureRefs = useRef<(SignatureCanvas | null)[]>([]);
 
   const [submitting, setSubmitting] = useState(false);
@@ -72,7 +76,13 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
   const depositAmount = Math.ceil(totalAmount * 0.5);
   const remainingAmount = totalAmount - depositAmount;
 
-  const handleSelectPaymentOption = async (option: 'deposit_50' | 'full_100' | 'pay_at_venue') => {
+  // If tour date is within 24 hours or already passed, only allow full payment
+  const now = new Date();
+  const tourDateTime = new Date(tourDate + 'T00:00:00');
+  const hoursUntilTour = (tourDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+  const isWithin24Hours = hoursUntilTour <= 24;
+
+  const handleSelectPaymentOption = async (option: 'deposit_50' | 'full_100') => {
     setSettingOption(true);
     try {
       const result = await setPaymentOption(bookingId, option);
@@ -113,7 +123,7 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        toast({ title: "File too large", description: "Please upload an image under 5MB", variant: "destructive" });
+        toast({ title: t("common.error"), description: t("waiver.file_too_large"), variant: "destructive" });
         return;
       }
       setPaymentSlip(file);
@@ -123,17 +133,17 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
   const handleSignWaiver = async (index: number) => {
     const state = waiverStates[index];
     if (!state.name.trim() || !state.passportNo.trim() || !state.email.trim()) {
-      toast({ title: "Missing Info", description: "Please fill in Name, Passport No, and Email.", variant: "destructive" });
+      toast({ title: t("common.error"), description: t("waiver.missing_info"), variant: "destructive" });
       return;
     }
     if (!state.agreed) {
-      toast({ title: "Agreement Required", description: "Please agree to the waiver terms.", variant: "destructive" });
+      toast({ title: t("common.error"), description: t("waiver.agree_required"), variant: "destructive" });
       return;
     }
 
     const sigCanvas = signatureRefs.current[index];
     if (!sigCanvas || sigCanvas.isEmpty()) {
-      toast({ title: "Signature Required", description: "Please sign the waiver.", variant: "destructive" });
+      toast({ title: t("common.error"), description: t("waiver.sig_required"), variant: "destructive" });
       return;
     }
 
@@ -173,7 +183,7 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
   const handleSendWaiverEmail = async (index: number) => {
     const state = waiverStates[index];
     if (!state.email.trim()) {
-      toast({ title: "Email Required", description: "Please enter the participant's email to send the waiver link.", variant: "destructive" });
+      toast({ title: t("common.error"), description: t("waiver.email_required"), variant: "destructive" });
       return;
     }
 
@@ -200,7 +210,7 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
 
   const handleSubmitPayment = async () => {
     if (!paymentSlip) {
-      toast({ title: "Missing", description: "Please upload your payment slip.", variant: "destructive" });
+      toast({ title: t("common.error"), description: t("waiver.missing_slip"), variant: "destructive" });
       return;
     }
 
@@ -224,21 +234,27 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
   };
 
   const allWaiversDone = waiverStates.every((s) => s.completed || s.signLater);
+  const paymentDone = paymentUploaded || !!existingPaymentOption;
+
+  const showPayment = section === "payment";
+  const showWaivers = section === "waivers";
 
   return (
     <div className="space-y-6">
+      {/* ===== PAYMENT SECTION ===== */}
+      {showPayment && (<>
       {/* Cancellation Policy */}
       <Card className="border-red-200">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2 text-red-700">
             <AlertTriangle className="h-4 w-4" />
-            Cancellation Policy
+            {t("pay.cancellation_policy")}
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm space-y-2 text-gray-600">
-          <p>• <strong>3+ days before tour date:</strong> Full refund (minus bank transfer charges & admin fee)</p>
-          <p>• <strong>Less than 3 days before tour date:</strong> 25% refund for full payment only</p>
-          <p>• <strong>No-show:</strong> No refund</p>
+          <p>• {t("pay.cancel_3days")}</p>
+          <p>• {t("pay.cancel_less3")}</p>
+          <p>• {t("pay.cancel_noshow")}</p>
         </CardContent>
       </Card>
 
@@ -247,26 +263,33 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5 text-primary" />
-            Step 1: Choose Payment Option
+            {t("pay.choose_option")}
           </CardTitle>
           <CardDescription>
-            Total amount: <strong className="text-primary">{formatPrice(totalAmount)}</strong>
+            {t("pay.total_amount")}: <strong className="text-primary">{formatPrice(totalAmount)}</strong>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {!paymentOption ? (
             <div className="grid gap-3">
               <button
-                onClick={() => handleSelectPaymentOption('deposit_50')}
-                disabled={settingOption}
-                className="p-4 border-2 rounded-lg text-left hover:border-primary transition-colors"
+                onClick={() => !isWithin24Hours && handleSelectPaymentOption('deposit_50')}
+                disabled={settingOption || isWithin24Hours}
+                className={`p-4 border-2 rounded-lg text-left transition-colors ${
+                  isWithin24Hours
+                    ? "opacity-50 cursor-not-allowed bg-gray-50 border-gray-200"
+                    : "hover:border-primary"
+                }`}
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="font-semibold">Option 1: 50% Deposit</p>
-                    <p className="text-sm text-gray-500">Pay {formatPrice(depositAmount)} now, remaining {formatPrice(remainingAmount)} before tour or at venue</p>
+                    <p className={`font-semibold ${isWithin24Hours ? "text-gray-400" : ""}`}>{t("pay.option1_title")}</p>
+                    <p className={`text-sm ${isWithin24Hours ? "text-gray-400" : "text-gray-500"}`}>{t("pay.option1_desc").replace("{{amount}}", formatPrice(depositAmount)).replace("{{remaining}}", formatPrice(remainingAmount))}</p>
+                    {isWithin24Hours && (
+                      <p className="text-xs text-red-500 mt-1 font-medium">{t("pay.deposit_unavailable")}</p>
+                    )}
                   </div>
-                  <Badge variant="secondary">{formatPrice(depositAmount)}</Badge>
+                  <Badge variant="secondary" className={isWithin24Hours ? "opacity-50" : ""}>{formatPrice(depositAmount)}</Badge>
                 </div>
               </button>
               <button
@@ -276,66 +299,38 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="font-semibold">Option 2: Full Payment (100%)</p>
-                    <p className="text-sm text-gray-500">Pay the full amount now</p>
+                    <p className="font-semibold">{t("pay.option2_title")}</p>
+                    <p className="text-sm text-gray-500">{t("pay.option2_desc")}</p>
                   </div>
                   <Badge variant="secondary">{formatPrice(totalAmount)}</Badge>
                 </div>
               </button>
-              <button
-                onClick={() => handleSelectPaymentOption('pay_at_venue')}
-                disabled={settingOption}
-                className="p-4 border-2 rounded-lg text-left hover:border-primary transition-colors"
-              >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-semibold">Option 3: Pay at Venue</p>
-                    <p className="text-sm text-gray-500">Pay the full amount on the day at check-in (cash or transfer)</p>
-                  </div>
-                  <Badge variant="outline">On-site</Badge>
-                </div>
-              </button>
               {settingOption && (
                 <div className="flex items-center justify-center py-2">
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" /> Saving...
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" /> {t("pay.saving")}
                 </div>
               )}
-            </div>
-          ) : paymentOption === 'pay_at_venue' ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-700">
-                <CheckCircle2 className="h-5 w-5" />
-                <div>
-                  <p className="font-medium">Pay at Venue Selected</p>
-                  <p className="text-sm">Please pay {formatPrice(totalAmount)} at check-in on the day of your tour.</p>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => setPaymentOptionState(null)} className="text-xs text-gray-500">
-                Change payment option
-              </Button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm">
                 <p className="font-semibold text-gray-800">
-                  {paymentOption === 'deposit_50' ? `50% Deposit: ${formatPrice(depositAmount)}` : `Full Payment: ${formatPrice(totalAmount)}`}
+                  {paymentOption === 'deposit_50' ? `${t("pay.deposit_selected")}: ${formatPrice(depositAmount)}` : `${t("pay.full_selected")}: ${formatPrice(totalAmount)}`}
                 </p>
                 {paymentOption === 'deposit_50' && (
-                  <p className="text-gray-600 mt-1">Remaining {formatPrice(remainingAmount)} to be paid before tour or at venue on the day.</p>
+                  <p className="text-gray-600 mt-1">{t("pay.remaining_note").replace("{{amount}}", formatPrice(remainingAmount))}</p>
                 )}
               </div>
 
               <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="font-semibold mb-2">Bank Transfer Details</p>
+                <p className="font-semibold mb-2">{t("pay.bank_details")}</p>
                 <div className="text-sm space-y-1">
-                  <p><strong>Bank:</strong> {bankInfo?.bank_name || "Siam Commercial Bank (SCB)"}</p>
-                  <p><strong>Account Name:</strong> {bankInfo?.bank_account_name || "Nuthawut Tharatjai"}</p>
-                  <p><strong>Account Number:</strong> {bankInfo?.bank_account_number || "406-7-61675-7"}</p>
-                  {(bankInfo?.bank_swift_code) && (
-                    <p><strong>SWIFT Code:</strong> {bankInfo.bank_swift_code}</p>
-                  )}
+                  <p><strong>{t("pay.bank")}:</strong> {bankInfo?.bank_name || "Siam Commercial Bank (SCB)"}</p>
+                  <p><strong>{t("pay.account_name")}:</strong> {bankInfo?.bank_account_name || "Mr. Nuthawut Tharatjai"}</p>
+                  <p><strong>{t("pay.account_number")}:</strong> {bankInfo?.bank_account_number || "406-7-61675-7"}</p>
+                  <p><strong>{t("pay.swift_code")}:</strong> {bankInfo?.bank_swift_code || "SICOQHBK"}</p>
                   <p className="mt-2 font-semibold text-primary">
-                    Transfer Amount: {formatPrice(paymentOption === 'deposit_50' ? depositAmount : totalAmount)}
+                    {t("pay.transfer_amount")}: {formatPrice(paymentOption === 'deposit_50' ? depositAmount : totalAmount)}
                   </p>
                 </div>
               </div>
@@ -343,12 +338,12 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
               {paymentUploaded ? (
                 <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
                   <CheckCircle2 className="h-5 w-5" />
-                  <span className="font-medium">Payment slip uploaded successfully!</span>
+                  <span className="font-medium">{t("pay.slip_uploaded")}</span>
                 </div>
               ) : (
                 <>
                   <div>
-                    <Label htmlFor="payment-slip">Payment Slip Image *</Label>
+                    <Label htmlFor="payment-slip">{t("pay.slip_label")} *</Label>
                     <div className="mt-2">
                       <input id="payment-slip" type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
                       <label
@@ -365,35 +360,38 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
                         ) : (
                           <div className="text-center">
                             <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                            <p className="text-sm text-gray-500">Click to upload payment slip</p>
+                            <p className="text-sm text-gray-500">{t("pay.click_upload")}</p>
                           </div>
                         )}
                       </label>
                     </div>
                   </div>
                   <Button onClick={handleSubmitPayment} disabled={!paymentSlip || submitting} className="w-full">
-                    {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...</> : "Upload Payment Slip"}
+                    {submitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("pay.uploading")}</> : t("pay.upload_slip")}
                   </Button>
                 </>
               )}
 
               <Button variant="ghost" size="sm" onClick={() => setPaymentOptionState(null)} className="text-xs text-gray-500">
-                Change payment option
+                {t("pay.change_option")}
               </Button>
             </div>
           )}
         </CardContent>
       </Card>
+      </>)}
 
+      {/* ===== WAIVERS SECTION ===== */}
+      {showWaivers && (<>
       {/* Waiver Section Header */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileSignature className="h-5 w-5 text-primary" />
-            Step 2: Liability Waivers ({participants.length} {participants.length === 1 ? "person" : "people"})
+            {t("waiver.title")} ({participants.length} {participants.length === 1 ? t("waiver.person") : t("waiver.people")})
           </CardTitle>
           <CardDescription>
-            Each participant must sign their own waiver. If someone is not present, you can send them the waiver link via email to sign later.
+            {t("waiver.desc")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -407,9 +405,9 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
           <div className="flex items-start gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
             <AlertTriangle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-semibold text-gray-800">Important: Physical Document Required</p>
+              <p className="font-semibold text-gray-800">{t("waiver.physical_title")}</p>
               <p className="text-gray-600 mt-1">
-                A printed copy of this waiver will be provided at check-in for your physical signature. Please bring a valid passport or ID for verification.
+                {t("waiver.physical_desc")}
               </p>
             </div>
           </div>
@@ -428,9 +426,9 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
                   <CheckCircle2 className="h-6 w-6 text-green-600" />
                   <div>
                     <p className="font-semibold text-green-800">
-                      {participant.name} {index === 0 && <Badge variant="secondary" className="ml-1">Lead</Badge>}
+                      {participant.name} {index === 0 && <Badge variant="secondary" className="ml-1">{t("waiver.lead")}</Badge>}
                     </p>
-                    <p className="text-sm text-green-600">Waiver signed successfully</p>
+                    <p className="text-sm text-green-600">{t("waiver.signed")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -446,9 +444,9 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
                   <Mail className="h-6 w-6 text-blue-600" />
                   <div>
                     <p className="font-semibold text-blue-800">
-                      {participant.name} {index === 0 && <Badge variant="secondary" className="ml-1">Lead</Badge>}
+                      {participant.name} {index === 0 && <Badge variant="secondary" className="ml-1">{t("waiver.lead")}</Badge>}
                     </p>
-                    <p className="text-sm text-blue-600">Waiver link sent to {state.email}</p>
+                    <p className="text-sm text-blue-600">{t("waiver.email_sent")} {state.email}</p>
                   </div>
                 </div>
               </CardContent>
@@ -460,30 +458,30 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
           <Card key={index}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                Rider {index + 1}: {participant.name}
-                {index === 0 && <Badge variant="secondary">Lead Guest</Badge>}
+                {t("booking.rider")} {index + 1}: {participant.name}
+                {index === 0 && <Badge variant="secondary">{t("waiver.lead_guest")}</Badge>}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Full Name *</Label>
+                  <Label>{t("waiver.full_name")} *</Label>
                   <Input
-                    placeholder="As shown on passport / ID"
+                    placeholder={t("waiver.name_placeholder")}
                     value={state.name}
                     onChange={(e) => updateWaiverState(index, { name: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Passport / ID Number *</Label>
+                  <Label>{t("waiver.passport")} *</Label>
                   <Input
-                    placeholder="e.g., AB1234567"
+                    placeholder={t("waiver.passport_placeholder")}
                     value={state.passportNo}
                     onChange={(e) => updateWaiverState(index, { passportNo: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Date *</Label>
+                  <Label>{t("waiver.date")} *</Label>
                   <Input
                     type="date"
                     value={state.date}
@@ -491,10 +489,10 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Email *</Label>
+                  <Label>{t("waiver.email")} *</Label>
                   <Input
                     type="email"
-                    placeholder="their@email.com"
+                    placeholder={t("waiver.email_placeholder")}
                     value={state.email}
                     onChange={(e) => updateWaiverState(index, { email: e.target.value })}
                   />
@@ -508,7 +506,7 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
                   onCheckedChange={(checked) => updateWaiverState(index, { agreed: checked as boolean })}
                 />
                 <label htmlFor={`agree-${index}`} className="text-sm font-medium leading-none">
-                  I have read and agree to the waiver terms above
+                  {t("waiver.agree")}
                 </label>
               </div>
 
@@ -517,13 +515,13 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
               {/* Signature */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <Label>Signature *</Label>
+                  <Label>{t("waiver.signature")} *</Label>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => signatureRefs.current[index]?.clear()}
                   >
-                    <Trash2 className="h-4 w-4 mr-1" /> Clear
+                    <Trash2 className="h-4 w-4 mr-1" /> {t("waiver.clear")}
                   </Button>
                 </div>
                 <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white">
@@ -546,9 +544,9 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
                   className="flex-1"
                 >
                   {state.saving ? (
-                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("waiver.saving")}</>
                   ) : (
-                    <><FileSignature className="h-4 w-4 mr-2" /> Sign Waiver</>
+                    <><FileSignature className="h-4 w-4 mr-2" /> {t("waiver.sign")}</>
                   )}
                 </Button>
 
@@ -560,9 +558,9 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
                     className="w-full"
                   >
                     {state.sendingEmail ? (
-                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending...</>
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("waiver.sending")}</>
                     ) : (
-                      <><Send className="h-4 w-4 mr-2" /> Sign Later (Send Email)</>
+                      <><Send className="h-4 w-4 mr-2" /> {t("waiver.sign_later")}</>
                     )}
                   </Button>
                 </div>
@@ -571,6 +569,7 @@ export default function PaymentWaiverForm({ bookingId, trackingToken, participan
           </Card>
         );
       })}
+      </>)}
     </div>
   );
 }
