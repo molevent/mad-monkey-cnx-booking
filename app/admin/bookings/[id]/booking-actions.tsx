@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, XCircle, Send, Loader2, Trash2, AlertTriangle } from "lucide-react";
+import { CheckCircle, XCircle, Send, Loader2, Trash2, AlertTriangle, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +25,7 @@ import {
   cancelBooking,
   updateBookingNotes,
   deleteBooking,
+  sendBookingDetailsEmail,
 } from "@/app/actions/bookings";
 import type { Booking } from "@/lib/types";
 
@@ -97,6 +98,17 @@ export default function BookingActions({ booking }: Props) {
       toast({ title: "Deleted", description: `Booking for ${result.deleted?.customer_name} has been permanently deleted.` });
       router.push("/admin/bookings");
     }
+  };
+
+  const handleSendEmail = async () => {
+    setLoading("email");
+    const result = await sendBookingDetailsEmail(booking.id);
+    if (result.error) {
+      toast({ title: "Error", description: result.error, variant: "destructive" });
+    } else {
+      toast({ title: "Email Sent", description: `Booking details sent to ${result.email}` });
+    }
+    setLoading(null);
   };
 
   const handleSaveNotes = async () => {
@@ -190,7 +202,26 @@ export default function BookingActions({ booking }: Props) {
             </p>
           )}
 
-          <div className="border-t pt-3 mt-3">
+          <div className="border-t pt-3 mt-3 space-y-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleSendEmail}
+                  disabled={loading !== null}
+                >
+                  {loading === "email" ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Mail className="h-4 w-4 mr-2" />
+                  )}
+                  Send Booking Details Email
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Resend booking details email to customer</TooltipContent>
+            </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button

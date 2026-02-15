@@ -65,7 +65,7 @@ export default async function CustomerDetailPage({
           </Button>
         </Link>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-foreground">{customer.full_name}</h1>
-        <p className="text-sm text-gray-500 dark:text-muted-foreground">Customer since {new Date(customer.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</p>
+        <p className="text-sm text-gray-500 dark:text-muted-foreground" suppressHydrationWarning>Customer since {new Date(customer.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">

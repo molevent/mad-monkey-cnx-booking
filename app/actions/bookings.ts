@@ -643,3 +643,97 @@ export async function deleteBooking(bookingId: string) {
     },
   };
 }
+
+export async function sendBookingDetailsEmail(bookingId: string) {
+  const supabase = createServiceRoleClient();
+
+  const { data: booking, error: fetchError } = await supabase
+    .from("bookings")
+    .select("*, route:routes(*)")
+    .eq("id", bookingId)
+    .single();
+
+  if (fetchError || !booking) {
+    return { error: "Booking not found" };
+  }
+
+  const trackingUrl = `${process.env.NEXT_PUBLIC_APP_URL}/track/${booking.tracking_token}`;
+  const emailSettings = await getEmailSettings();
+
+  const status = booking.status as string;
+  let emailHtml: string;
+  let subject: string;
+
+  if (status === "CONFIRMED") {
+    // Send confirmation email
+    const qrCodeDataUrl = await generateQRCodeDataURL(
+      `${process.env.NEXT_PUBLIC_APP_URL}/admin/bookings/${booking.id}/checkin`
+    ).catch(() => undefined);
+
+    emailHtml = confirmationEmail({
+      customerName: booking.customer_name,
+      routeTitle: booking.route?.title || "Tour",
+      tourDate: formatDate(booking.tour_date),
+      startTime: formatTime(booking.start_time),
+      bookingRef: booking.id.slice(0, 8).toUpperCase(),
+      qrCodeDataUrl,
+      settings: emailSettings,
+    });
+    subject = emailSettings.confirmation_subject;
+  } else if (status === "AWAITING_PAYMENT" || status === "PAYMENT_UPLOADED") {
+    // Send payment request email
+    const calculatedTotal = calculateTotalWithDiscount(
+      booking.route?.price || 0,
+      booking.pax_count,
+      booking.route?.discount_type || "none",
+      booking.route?.discount_value || 0,
+      booking.route?.discount_from_pax || 2
+    ).total;
+    const totalAmount = booking.custom_total ?? calculatedTotal;
+
+    emailHtml = paymentRequestEmail({
+      customerName: booking.customer_name,
+      routeTitle: booking.route?.title || "Tour",
+      tourDate: formatDate(booking.tour_date),
+      totalAmount,
+      paymentUrl: trackingUrl,
+      settings: emailSettings,
+    });
+    subject = emailSettings.payment_subject;
+  } else {
+    // Send acknowledgement email for PENDING_REVIEW or any other status
+    emailHtml = acknowledgementEmail({
+      customerName: booking.customer_name,
+      routeTitle: booking.route?.title || "Tour",
+      tourDate: formatDate(booking.tour_date),
+      startTime: formatTime(booking.start_time),
+      paxCount: booking.pax_count,
+      trackingUrl,
+      settings: emailSettings,
+    });
+    subject = emailSettings.acknowledgement_subject;
+  }
+
+  try {
+    await sendEmail({
+      to: booking.customer_email,
+      subject,
+      html: emailHtml,
+    });
+  } catch (e: any) {
+    console.error("Send email error:", e);
+    return { error: `Failed to send email: ${e.message}` };
+  }
+
+  await logActivity({
+    bookingId,
+    action: "email_resent",
+    description: `Booking details email resent to ${booking.customer_email} (status: ${status})`,
+    actorType: "admin",
+    level: "info",
+    metadata: { email: booking.customer_email, status },
+  }).catch(() => {});
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+  return { success: true, email: booking.customer_email };
+}

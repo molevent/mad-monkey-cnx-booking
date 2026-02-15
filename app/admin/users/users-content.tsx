@@ -78,7 +78,7 @@ export default function UsersContent({ users, isSuperAdmin }: Props) {
                         <span className="text-gray-500 dark:text-muted-foreground">{t("admin.admin")}</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-gray-500 dark:text-muted-foreground text-sm">
+                    <TableCell className="text-gray-500 dark:text-muted-foreground text-sm" suppressHydrationWarning>
                       {new Date(user.created_at).toLocaleDateString()}
                     </TableCell>
                     {isSuperAdmin && (

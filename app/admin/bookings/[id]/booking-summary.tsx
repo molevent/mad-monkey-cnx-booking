@@ -147,7 +147,7 @@ export default function BookingSummary({
         <Separator />
         <div>
           <p className="text-sm text-gray-500 dark:text-muted-foreground">Created</p>
-          <p className="font-medium">
+          <p className="font-medium" suppressHydrationWarning>
             {new Date(createdAt).toLocaleString()}
           </p>
         </div>

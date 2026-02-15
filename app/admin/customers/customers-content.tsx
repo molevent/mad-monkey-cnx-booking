@@ -74,7 +74,7 @@ export default function CustomersContent({ customers }: Props) {
                       {customer.total_bookings}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                  <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300" suppressHydrationWarning>
                     {customer.last_booking_at
                       ? new Date(customer.last_booking_at).toLocaleDateString("en-GB", {
                           day: "2-digit",

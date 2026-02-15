@@ -280,7 +280,7 @@ export default function CheckInPage() {
                   <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
                   <p className="text-green-700 font-bold text-lg">Already Checked In</p>
                   {booking.checked_in_at && (
-                    <p className="text-sm text-gray-500 dark:text-muted-foreground">
+                    <p className="text-sm text-gray-500 dark:text-muted-foreground" suppressHydrationWarning>
                       at {new Date(booking.checked_in_at).toLocaleString()}
                     </p>
                   )}
