@@ -62,8 +62,15 @@ export default function BookingsContent({ allBookings }: Props) {
               <TableCell>{booking.route?.title}</TableCell>
               <TableCell>
                 <div>
-                  <p>{formatDate(booking.tour_date)}</p>
-                  <p className="text-sm text-gray-500 dark:text-muted-foreground">{formatTime(booking.start_time)}</p>
+                  <p>
+                    {formatDate(booking.tour_date)}
+                    {booking.tour_end_date && ` — ${formatDate(booking.tour_end_date)}`}
+                  </p>
+                  {booking.num_days > 1 ? (
+                    <p className="text-sm text-blue-600">{booking.num_days} days</p>
+                  ) : (
+                    <p className="text-sm text-gray-500 dark:text-muted-foreground">{formatTime(booking.start_time)}</p>
+                  )}
                 </div>
               </TableCell>
               <TableCell>{booking.pax_count}</TableCell>

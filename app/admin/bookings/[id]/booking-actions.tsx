@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, XCircle, Send, Loader2, Trash2, AlertTriangle, Mail } from "lucide-react";
+import { CheckCircle, XCircle, Send, Loader2, Trash2, AlertTriangle, Mail, Pencil, Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,6 +27,9 @@ import {
   deleteBooking,
   sendBookingDetailsEmail,
   resendPaymentEmail,
+  addBookingNote,
+  editBookingNote,
+  deleteBookingNote,
 } from "@/app/actions/bookings";
 import type { Booking } from "@/lib/types";
 
@@ -38,8 +41,15 @@ export default function BookingActions({ booking }: Props) {
   const router = useRouter();
   const { toast } = useToast();
   const { t } = useI18n();
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
+
+  useEffect(() => { setMounted(true); }, []);
   const [notes, setNotes] = useState(booking.admin_notes || "");
+  const [newNote, setNewNote] = useState("");
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editingNoteText, setEditingNoteText] = useState("");
+  const [showDeleteNoteDialog, setShowDeleteNoteDialog] = useState<string | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
@@ -132,6 +142,69 @@ export default function BookingActions({ booking }: Props) {
       toast({ title: "Saved", description: "Notes updated" });
     }
     setLoading(null);
+  };
+
+  // Parse notes from JSON or legacy text
+  const parsedNotes: { id: string; text: string; created_at: string; updated_at?: string }[] = (() => {
+    if (!booking.admin_notes) return [];
+    try {
+      const parsed = JSON.parse(booking.admin_notes);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      if (booking.admin_notes.trim()) {
+        return [{ id: "legacy", text: booking.admin_notes.trim(), created_at: new Date().toISOString() }];
+      }
+    }
+    return [];
+  })();
+
+  const handleAddNote = async () => {
+    if (!newNote.trim()) return;
+    setLoading("add_note");
+    const result = await addBookingNote(booking.id, newNote.trim());
+    if (result.error) {
+      toast({ title: "Error", description: result.error, variant: "destructive" });
+    } else {
+      toast({ title: "Added", description: "Note added" });
+      setNewNote("");
+      router.refresh();
+    }
+    setLoading(null);
+  };
+
+  const handleEditNote = async (noteId: string) => {
+    if (!editingNoteText.trim()) return;
+    setLoading("edit_note");
+    const result = await editBookingNote(booking.id, noteId, editingNoteText.trim());
+    if (result.error) {
+      toast({ title: "Error", description: result.error, variant: "destructive" });
+    } else {
+      toast({ title: "Updated", description: "Note updated" });
+      setEditingNoteId(null);
+      setEditingNoteText("");
+      router.refresh();
+    }
+    setLoading(null);
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    setShowDeleteNoteDialog(null);
+    setLoading("delete_note");
+    const result = await deleteBookingNote(booking.id, noteId);
+    if (result.error) {
+      toast({ title: "Error", description: result.error, variant: "destructive" });
+    } else {
+      toast({ title: "Deleted", description: "Note deleted" });
+      router.refresh();
+    }
+    setLoading(null);
+  };
+
+  const formatNoteDate = (dateStr: string) => {
+    if (!mounted) return "...";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) +
+      " " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
@@ -421,30 +494,126 @@ export default function BookingActions({ booking }: Props) {
           <CardTitle>{t("admin.notes")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Textarea
-            placeholder={t("admin.notes_placeholder")}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={4}
-          />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={handleSaveNotes}
-                disabled={loading === "notes"}
-              >
-                {loading === "notes" ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : null}
-                {t("admin.save_notes")}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t("tip.save_notes")}</TooltipContent>
-          </Tooltip>
+          {/* Add new note */}
+          <div className="flex gap-2">
+            <Textarea
+              placeholder="Add a note..."
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+              rows={2}
+              className="flex-1"
+            />
+            <Button
+              variant="default"
+              size="sm"
+              className="self-end"
+              onClick={handleAddNote}
+              disabled={loading === "add_note" || !newNote.trim()}
+            >
+              {loading === "add_note" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
+          {/* Notes list */}
+          {parsedNotes.length > 0 && (
+            <div className="space-y-2 pt-2 border-t">
+              {parsedNotes.map((note) => (
+                <div key={note.id} className="p-3 bg-gray-50 dark:bg-muted rounded-lg text-sm">
+                  {editingNoteId === note.id ? (
+                    <div className="space-y-2">
+                      <Textarea
+                        value={editingNoteText}
+                        onChange={(e) => setEditingNoteText(e.target.value)}
+                        rows={2}
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => { setEditingNoteId(null); setEditingNoteText(""); }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleEditNote(note.id)}
+                          disabled={loading === "edit_note"}
+                        >
+                          {loading === "edit_note" ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">{note.text}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="flex items-center gap-1 text-xs text-gray-400">
+                          <Clock className="h-3 w-3" />
+                          {formatNoteDate(note.created_at)}
+                          {note.updated_at && (
+                            <span className="italic ml-1">(edited {formatNoteDate(note.updated_at)})</span>
+                          )}
+                        </span>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
+                            onClick={() => { setEditingNoteId(note.id); setEditingNoteText(note.text); }}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-red-600"
+                            onClick={() => setShowDeleteNoteDialog(note.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {parsedNotes.length === 0 && (
+            <p className="text-xs text-gray-400 text-center py-2">No notes yet</p>
+          )}
         </CardContent>
       </Card>
+
+      {/* Delete Note Dialog */}
+      <AlertDialog open={showDeleteNoteDialog !== null} onOpenChange={(open) => !open && setShowDeleteNoteDialog(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-500" />
+              Delete Note?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this note? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => showDeleteNoteDialog && handleDeleteNote(showDeleteNoteDialog)}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Yes, Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

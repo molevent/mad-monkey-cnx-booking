@@ -6,7 +6,14 @@ import PrintButton from "./print-button";
 
 export const dynamic = "force-dynamic";
 
-async function getBooking(id: string): Promise<Booking | null> {
+function extractStoragePath(url: string, bucket: string): string | null {
+  const marker = `/storage/v1/object/public/${bucket}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  return url.substring(idx + marker.length);
+}
+
+async function getBooking(id: string) {
   const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from("bookings")
@@ -15,7 +22,35 @@ async function getBooking(id: string): Promise<Booking | null> {
     .single();
 
   if (error) return null;
-  return data;
+
+  // Generate signed URL for booking-level waiver signature (fallback)
+  let bookingSignatureUrl: string | null = null;
+  if (data.waiver_signature_url) {
+    const path = extractStoragePath(data.waiver_signature_url, "waiver-signatures");
+    if (path) {
+      const { data: signed } = await supabase.storage
+        .from("waiver-signatures")
+        .createSignedUrl(path, 3600);
+      bookingSignatureUrl = signed?.signedUrl || null;
+    }
+  }
+
+  // Generate signed URLs for per-participant waiver signatures
+  if (Array.isArray(data.waiver_info)) {
+    for (const w of data.waiver_info) {
+      if (w.signature_url) {
+        const sigPath = extractStoragePath(w.signature_url, "waiver-signatures");
+        if (sigPath) {
+          const { data: signed } = await supabase.storage
+            .from("waiver-signatures")
+            .createSignedUrl(sigPath, 3600);
+          w.signature_url = signed?.signedUrl || w.signature_url;
+        }
+      }
+    }
+  }
+
+  return { ...data, bookingSignatureUrl } as Booking & { bookingSignatureUrl: string | null };
 }
 
 const WAIVER_PARAGRAPHS = [
@@ -33,30 +68,43 @@ function WaiverDocument({
   waiver,
   booking,
   index,
+  fallbackSignatureUrl,
 }: {
   participant: { name: string };
   waiver: WaiverInfo | undefined;
   booking: Booking;
   index: number;
+  fallbackSignatureUrl?: string | null;
 }) {
+  const signatureUrl = waiver?.signature_url || fallbackSignatureUrl;
+
   return (
-    <div className="max-w-[210mm] mx-auto p-8 print:p-[15mm] print:max-w-none print:break-after-page">
-      <h1 className="text-center font-bold text-lg mb-6 leading-tight">
+    <div className="w-full p-8 print:p-0 print:break-after-page">
+      <h1 className="text-center font-bold text-lg mb-5 leading-tight">
         MAD MONKEY CHIANGMAI MTB ADVENTURE TOUR AND RENTAL RELEASE OF LIABILITY
         AND MTB BIKE RENTAL AGREEMENT
       </h1>
 
-      <div className="text-sm leading-relaxed space-y-4">
+      <div className="text-[15px] leading-normal space-y-3">
         {WAIVER_PARAGRAPHS.map((text, i) => (
           <p key={i} className={i === 3 ? "font-bold" : ""}>{text}</p>
         ))}
       </div>
 
-      <div className="mt-10 space-y-6 text-sm">
+      <div className="mt-8 space-y-4 text-[15px]">
         <div className="flex items-end gap-2">
           <span className="font-semibold w-32 shrink-0">Signed</span>
           <span className="mr-2">:</span>
-          <span className="flex-1 border-b border-dotted border-gray-400 pb-1 min-h-[24px]">&nbsp;</span>
+          <span className="flex-1 border-b border-dotted border-gray-400 pb-1 min-h-[24px]">
+            {signatureUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={signatureUrl}
+                alt={`Signature of ${waiver?.signer_name || participant.name}`}
+                className="h-14 object-contain"
+              />
+            ) : null}
+          </span>
         </div>
         <div className="flex items-end gap-2">
           <span className="font-semibold w-32 shrink-0">Name.</span>
@@ -88,7 +136,7 @@ function WaiverDocument({
         </div>
       </div>
 
-      <div className="mt-12 pt-4 border-t border-gray-300 text-xs text-gray-500">
+      <div className="mt-8 pt-3 border-t border-gray-300 text-xs text-gray-500">
         <div className="flex justify-between">
           <span>Tour: {booking.route?.title}</span>
           <span>Rider {index + 1}: {participant.name}</span>
@@ -154,6 +202,7 @@ export default async function WaiverPrintPage({
             waiver={waiver}
             booking={booking}
             index={index}
+            fallbackSignatureUrl={booking.bookingSignatureUrl}
           />
         );
       })}

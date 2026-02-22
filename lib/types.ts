@@ -11,7 +11,10 @@ export interface Participant {
   name: string
   height: string
   helmet_size: string
-  dietary: string
+  glove_size: string
+  knee_pad_size: string
+  bike_model?: string
+  dietary?: string
 }
 
 export interface Route {
@@ -34,6 +37,8 @@ export interface Route {
   avg_speed_mph: number | null
   uphill_ft: number | null
   downhill_ft: number | null
+  is_multi_day: boolean
+  price_label: string
 }
 
 export interface Customer {
@@ -55,6 +60,8 @@ export interface Booking {
   created_at: string
   updated_at: string
   tour_date: string
+  tour_end_date: string | null
+  num_days: number
   start_time: string
   route_id: string
   customer_id: string | null

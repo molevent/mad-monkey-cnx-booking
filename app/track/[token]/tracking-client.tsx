@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { useI18n } from "@/lib/i18n/context";
 import { bookingLocales, localeNames } from "@/lib/i18n/translations";
 import type { Locale } from "@/lib/i18n/translations";
-import { formatDate, formatTime, formatPrice, getStatusColor, getStatusLabel, calculateTotalWithDiscount } from "@/lib/utils";
+import { formatDate, formatDateRange, formatTime, formatPrice, getStatusColor, getStatusLabel, calculateTotalWithDiscount } from "@/lib/utils";
 import PaymentWaiverForm from "./payment-waiver-form";
 import type { Participant, WaiverInfo } from "@/lib/types";
 
@@ -23,6 +23,8 @@ interface BookingData {
   id: string;
   status: string;
   tour_date: string;
+  tour_end_date: string | null;
+  num_days: number;
   start_time: string;
   customer_name: string;
   pax_count: number;
@@ -192,8 +194,10 @@ export default function TrackingClient({ booking, bankInfo }: Props) {
               <div>
                 <p className="text-sm text-gray-500">{t("track.date_time")}</p>
                 <p className="font-semibold">
-                  {formatDate(booking.tour_date)}{" "}
-                  {formatTime(booking.start_time) !== "To be confirmed" && `at ${formatTime(booking.start_time)}`}
+                  {booking.tour_end_date
+                    ? formatDateRange(booking.tour_date, booking.tour_end_date, booking.num_days)
+                    : formatDate(booking.tour_date)}{" "}
+                  {!booking.tour_end_date && formatTime(booking.start_time) !== "To be confirmed" && `at ${formatTime(booking.start_time)}`}
                 </p>
               </div>
               <div>

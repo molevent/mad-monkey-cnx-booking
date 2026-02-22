@@ -72,6 +72,8 @@ export default async function TrackingPage({
           id: booking.id,
           status: booking.status,
           tour_date: booking.tour_date,
+          tour_end_date: booking.tour_end_date || null,
+          num_days: booking.num_days || 1,
           start_time: booking.start_time,
           customer_name: booking.customer_name,
           pax_count: booking.pax_count,

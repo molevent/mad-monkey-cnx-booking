@@ -48,6 +48,8 @@ export default function EditRoutePage() {
     avg_speed_mph: null as number | null,
     uphill_ft: null as number | null,
     downhill_ft: null as number | null,
+    is_multi_day: false,
+    price_label: "per person",
   });
 
   useEffect(() => {
@@ -82,6 +84,8 @@ export default function EditRoutePage() {
           avg_speed_mph: data.avg_speed_mph ?? null,
           uphill_ft: data.uphill_ft ?? null,
           downhill_ft: data.downhill_ft ?? null,
+          is_multi_day: data.is_multi_day ?? false,
+          price_label: data.price_label || "per person",
         });
       } catch {
         setFormError("Failed to load route data.");
@@ -275,6 +279,29 @@ export default function EditRoutePage() {
                   required
                 />
               </div>
+
+              <div className="flex items-center space-x-2 pt-2">
+                <Checkbox
+                  id="is_multi_day"
+                  checked={formData.is_multi_day}
+                  onCheckedChange={(checked) =>
+                    setFormData({
+                      ...formData,
+                      is_multi_day: checked as boolean,
+                      price_label: checked ? "per person / day" : "per person",
+                    })
+                  }
+                />
+                <label htmlFor="is_multi_day" className="text-sm font-medium leading-none">
+                  Multi-Day Tour
+                </label>
+              </div>
+              {formData.is_multi_day && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+                  <p>Customers will select a date range when booking. Total = <strong>price × days × riders</strong>.</p>
+                  <p className="text-xs mt-1">Price label: <strong>{formData.price_label}</strong></p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

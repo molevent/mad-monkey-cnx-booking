@@ -11,7 +11,7 @@ export default async function BookingFormPage({
   const supabase = createServerSupabaseClient();
   const { data: route, error } = await supabase
     .from("routes")
-    .select("title, description, difficulty, duration, price, cover_image_url, discount_type, discount_value, discount_from_pax, distance_mi, avg_speed_mph, uphill_ft, downhill_ft")
+    .select("title, description, difficulty, duration, price, cover_image_url, discount_type, discount_value, discount_from_pax, distance_mi, avg_speed_mph, uphill_ft, downhill_ft, is_multi_day, price_label")
     .eq("slug", params.slug)
     .eq("is_active", true)
     .single();
@@ -38,6 +38,8 @@ export default async function BookingFormPage({
           avg_speed_mph: route.avg_speed_mph || null,
           uphill_ft: route.uphill_ft || null,
           downhill_ft: route.downhill_ft || null,
+          is_multi_day: route.is_multi_day || false,
+          price_label: route.price_label || "per person",
         }}
       />
     </BookingPageWrapper>

@@ -5,7 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/transport";
 import { acknowledgementEmail, paymentRequestEmail, paymentReceivedEmail, confirmationEmail } from "@/lib/email/templates";
 import { getEmailSettings } from "@/app/actions/email-settings";
-import { formatDate, formatTime, calculateTotalWithDiscount } from "@/lib/utils";
+import { formatDate, formatDateRange, formatTime, calculateTotalWithDiscount } from "@/lib/utils";
 import { generateQRCodeDataURL } from "@/lib/qrcode";
 import type { Participant, WaiverInfo } from "@/lib/types";
 import { logActivity } from "@/app/actions/activity-log";
@@ -13,6 +13,8 @@ import { logActivity } from "@/app/actions/activity-log";
 interface CreateBookingInput {
   route_slug: string;
   tour_date: string;
+  tour_end_date?: string | null;
+  num_days?: number;
   start_time: string;
   customer_name: string;
   customer_email: string;
@@ -81,6 +83,8 @@ export async function createBooking(input: CreateBookingInput) {
     .insert({
       route_id: route.id,
       tour_date: input.tour_date,
+      tour_end_date: input.tour_end_date || null,
+      num_days: input.num_days || 1,
       start_time: input.start_time || "00:00",
       customer_name: input.customer_name,
       customer_email: input.customer_email,
@@ -108,7 +112,7 @@ export async function createBooking(input: CreateBookingInput) {
     html: acknowledgementEmail({
       customerName: input.customer_name,
       routeTitle: route.title,
-      tourDate: formatDate(input.tour_date),
+      tourDate: formatDateRange(input.tour_date, input.tour_end_date, input.num_days),
       startTime: formatTime(input.start_time),
       paxCount: input.pax_count,
       trackingUrl,
@@ -172,7 +176,7 @@ export async function approveBooking(bookingId: string) {
     html: paymentRequestEmail({
       customerName: booking.customer_name,
       routeTitle: booking.route.title,
-      tourDate: formatDate(booking.tour_date),
+      tourDate: formatDateRange(booking.tour_date, booking.tour_end_date, booking.num_days),
       totalAmount,
       paymentUrl,
       settings: emailSettings,
@@ -229,7 +233,7 @@ export async function resendPaymentEmail(bookingId: string) {
     html: paymentRequestEmail({
       customerName: booking.customer_name,
       routeTitle: booking.route.title,
-      tourDate: formatDate(booking.tour_date),
+      tourDate: formatDateRange(booking.tour_date, booking.tour_end_date, booking.num_days),
       totalAmount,
       paymentUrl,
       settings: emailSettings,
@@ -284,10 +288,11 @@ export async function confirmBooking(bookingId: string) {
     html: confirmationEmail({
       customerName: booking.customer_name,
       routeTitle: booking.route.title,
-      tourDate: formatDate(booking.tour_date),
+      tourDate: formatDateRange(booking.tour_date, booking.tour_end_date, booking.num_days),
       startTime: formatTime(booking.start_time),
       bookingRef: booking.tracking_token,
       qrCodeDataUrl,
+      participants: (booking.participants_info || []).map((p: any) => ({ name: p.name, bike_model: p.bike_model })),
       settings: emailSettings,
     }),
   });
@@ -367,6 +372,118 @@ export async function updateBookingNotes(bookingId: string, notes: string) {
   return { success: true };
 }
 
+interface AdminNote {
+  id: string;
+  text: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+function parseNotes(raw: string | null): AdminNote[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {
+    // Legacy plain text — migrate to single note
+    if (raw.trim()) {
+      return [{ id: crypto.randomUUID(), text: raw.trim(), created_at: new Date().toISOString() }];
+    }
+  }
+  return [];
+}
+
+export async function addBookingNote(bookingId: string, text: string) {
+  const supabase = createServiceRoleClient();
+
+  const { data: booking, error: fetchError } = await supabase
+    .from("bookings")
+    .select("admin_notes")
+    .eq("id", bookingId)
+    .single();
+
+  if (fetchError || !booking) return { error: "Booking not found" };
+
+  const notes = parseNotes(booking.admin_notes);
+  const newNote: AdminNote = {
+    id: crypto.randomUUID(),
+    text,
+    created_at: new Date().toISOString(),
+  };
+  notes.unshift(newNote);
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({ admin_notes: JSON.stringify(notes) })
+    .eq("id", bookingId);
+
+  if (error) return { error: "Failed to add note" };
+
+  await logActivity({
+    bookingId,
+    action: "notes_updated",
+    description: `Admin note added.`,
+    actorType: "admin",
+    level: "info",
+  }).catch(() => {});
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+  return { success: true };
+}
+
+export async function editBookingNote(bookingId: string, noteId: string, text: string) {
+  const supabase = createServiceRoleClient();
+
+  const { data: booking, error: fetchError } = await supabase
+    .from("bookings")
+    .select("admin_notes")
+    .eq("id", bookingId)
+    .single();
+
+  if (fetchError || !booking) return { error: "Booking not found" };
+
+  const notes = parseNotes(booking.admin_notes);
+  const note = notes.find(n => n.id === noteId);
+  if (!note) return { error: "Note not found" };
+
+  note.text = text;
+  note.updated_at = new Date().toISOString();
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({ admin_notes: JSON.stringify(notes) })
+    .eq("id", bookingId);
+
+  if (error) return { error: "Failed to edit note" };
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+  return { success: true };
+}
+
+export async function deleteBookingNote(bookingId: string, noteId: string) {
+  const supabase = createServiceRoleClient();
+
+  const { data: booking, error: fetchError } = await supabase
+    .from("bookings")
+    .select("admin_notes")
+    .eq("id", bookingId)
+    .single();
+
+  if (fetchError || !booking) return { error: "Booking not found" };
+
+  const notes = parseNotes(booking.admin_notes).filter(n => n.id !== noteId);
+
+  const { error } = await supabase
+    .from("bookings")
+    .update({ admin_notes: JSON.stringify(notes) })
+    .eq("id", bookingId);
+
+  if (error) return { error: "Failed to delete note" };
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+  return { success: true };
+}
+
 export async function setPaymentOption(
   bookingId: string,
   paymentOption: 'deposit_50' | 'full_100'
@@ -431,7 +548,7 @@ export async function markPaymentStatus(
       html: paymentReceivedEmail({
         customerName: booking.customer_name,
         routeTitle: booking.route.title,
-        tourDate: formatDate(booking.tour_date),
+        tourDate: formatDateRange(booking.tour_date, booking.tour_end_date, booking.num_days),
         amountPaid,
         totalAmount,
         paymentType: status,
@@ -805,17 +922,17 @@ export async function sendBookingDetailsEmail(bookingId: string) {
 
   if (status === "CONFIRMED") {
     // Send confirmation email
-    const qrCodeDataUrl = await generateQRCodeDataURL(
-      `${process.env.NEXT_PUBLIC_APP_URL}/admin/bookings/${booking.id}/checkin`
-    ).catch(() => undefined);
+    const checkInUrl = `${process.env.NEXT_PUBLIC_APP_URL}/admin/check-in?code=${booking.tracking_token}`;
+    const qrCodeDataUrl = await generateQRCodeDataURL(checkInUrl).catch(() => undefined);
 
     emailHtml = confirmationEmail({
       customerName: booking.customer_name,
       routeTitle: booking.route?.title || "Tour",
-      tourDate: formatDate(booking.tour_date),
+      tourDate: formatDateRange(booking.tour_date, booking.tour_end_date, booking.num_days),
       startTime: formatTime(booking.start_time),
-      bookingRef: booking.id.slice(0, 8).toUpperCase(),
+      bookingRef: booking.tracking_token,
       qrCodeDataUrl,
+      participants: (booking.participants_info || []).map((p: any) => ({ name: p.name, bike_model: p.bike_model })),
       settings: emailSettings,
     });
     subject = emailSettings.confirmation_subject;
@@ -833,7 +950,7 @@ export async function sendBookingDetailsEmail(bookingId: string) {
     emailHtml = paymentRequestEmail({
       customerName: booking.customer_name,
       routeTitle: booking.route?.title || "Tour",
-      tourDate: formatDate(booking.tour_date),
+      tourDate: formatDateRange(booking.tour_date, booking.tour_end_date, booking.num_days),
       totalAmount,
       paymentUrl: trackingUrl,
       settings: emailSettings,
@@ -844,7 +961,7 @@ export async function sendBookingDetailsEmail(bookingId: string) {
     emailHtml = acknowledgementEmail({
       customerName: booking.customer_name,
       routeTitle: booking.route?.title || "Tour",
-      tourDate: formatDate(booking.tour_date),
+      tourDate: formatDateRange(booking.tour_date, booking.tour_end_date, booking.num_days),
       startTime: formatTime(booking.start_time),
       paxCount: booking.pax_count,
       trackingUrl,

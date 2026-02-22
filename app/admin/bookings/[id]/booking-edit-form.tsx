@@ -23,6 +23,12 @@ import type { Participant, Booking } from "@/lib/types";
 
 const TIME_SLOTS = ["07:00", "08:00", "09:00", "14:00", "15:00"];
 const HELMET_SIZES = ["XS", "S", "M", "L", "XL"];
+const GLOVE_SIZES = ["XS", "S", "M", "L", "XL"];
+const KNEE_PAD_SIZES = ["XS", "S", "M", "L", "XL"];
+const BIKE_MODELS = [
+  "Specialized Turbo Levo Carbon Gen 3",
+  "Trek Rail Aluminum",
+];
 const ALL_STATUSES = [
   { value: "PENDING_REVIEW", label: "Pending Review" },
   { value: "AWAITING_PAYMENT", label: "Awaiting Payment" },
@@ -134,7 +140,7 @@ export default function BookingEditForm({ booking, routes }: Props) {
   };
 
   const addParticipant = () => {
-    setParticipants([...participants, { name: "", height: "", helmet_size: "M", dietary: "" }]);
+    setParticipants([...participants, { name: "", height: "", helmet_size: "M", glove_size: "M", knee_pad_size: "M" }]);
   };
 
   const removeParticipant = (index: number) => {
@@ -361,7 +367,13 @@ export default function BookingEditForm({ booking, routes }: Props) {
                 <Calendar className="h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-sm text-gray-500 dark:text-muted-foreground">Date</p>
-                  <p className="font-medium">{formatDate(booking.tour_date)}</p>
+                  <p className="font-medium">
+                    {formatDate(booking.tour_date)}
+                    {booking.tour_end_date && ` — ${formatDate(booking.tour_end_date)}`}
+                    {booking.num_days > 1 && (
+                      <span className="text-xs text-blue-600 ml-1">({booking.num_days} days)</span>
+                    )}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -437,12 +449,52 @@ export default function BookingEditForm({ booking, routes }: Props) {
                       </Select>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Dietary</Label>
-                      <Input
-                        value={p.dietary}
-                        onChange={(e) => updateParticipant(index, "dietary", e.target.value)}
-                        placeholder="None, Vegetarian, etc."
-                      />
+                      <Label className="text-xs">Glove Size</Label>
+                      <Select
+                        value={p.glove_size || "M"}
+                        onValueChange={(v) => updateParticipant(index, "glove_size", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {GLOVE_SIZES.map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Knee Pad Size</Label>
+                      <Select
+                        value={p.knee_pad_size || "M"}
+                        onValueChange={(v) => updateParticipant(index, "knee_pad_size", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {KNEE_PAD_SIZES.map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <Label className="text-xs">Bike Model</Label>
+                      <Select
+                        value={p.bike_model || ""}
+                        onValueChange={(v) => updateParticipant(index, "bike_model", v)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Assign bike..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BIKE_MODELS.map((m) => (
+                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
@@ -481,10 +533,20 @@ export default function BookingEditForm({ booking, routes }: Props) {
                       <span className="font-medium ml-1">{participant.helmet_size}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500 dark:text-muted-foreground">Dietary:</span>
-                      <span className="font-medium ml-1">{participant.dietary || "None"}</span>
+                      <span className="text-gray-500 dark:text-muted-foreground">Gloves:</span>
+                      <span className="font-medium ml-1">{participant.glove_size || "—"}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 dark:text-muted-foreground">Knee Pads:</span>
+                      <span className="font-medium ml-1">{participant.knee_pad_size || "—"}</span>
                     </div>
                   </div>
+                  {participant.bike_model && (
+                    <div className="mt-2 pt-2 border-t border-gray-100 dark:border-border">
+                      <span className="text-gray-500 dark:text-muted-foreground text-sm">🚲 Bike:</span>
+                      <span className="font-semibold text-sm ml-1 text-primary">{participant.bike_model}</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

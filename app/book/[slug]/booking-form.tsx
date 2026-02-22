@@ -25,6 +25,8 @@ import { useI18n } from "@/lib/i18n/context";
 import type { Participant, Customer } from "@/lib/types";
 
 const HELMET_SIZES = ["XS", "S", "M", "L", "XL"];
+const GLOVE_SIZES = ["XS", "S", "M", "L", "XL"];
+const KNEE_PAD_SIZES = ["XS", "S", "M", "L", "XL"];
 
 interface RouteInfo {
   title: string;
@@ -40,6 +42,8 @@ interface RouteInfo {
   avg_speed_mph: number | null;
   uphill_ft: number | null;
   downhill_ft: number | null;
+  is_multi_day: boolean;
+  price_label: string;
 }
 
 function getDifficultyColor(difficulty: string) {
@@ -72,10 +76,19 @@ export default function BookingForm({ slug, route }: Props) {
 
   const [formData, setFormData] = useState({
     tour_date: "",
+    tour_end_date: "",
     customer_name: "",
     customer_email: "",
     customer_whatsapp: "",
   });
+
+  const numDays = (() => {
+    if (!route.is_multi_day || !formData.tour_date || !formData.tour_end_date) return 1;
+    const start = new Date(formData.tour_date);
+    const end = new Date(formData.tour_end_date);
+    const diff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    return diff > 0 ? diff : 1;
+  })();
 
   const handleEmailBlur = useCallback(async () => {
     const email = formData.customer_email.trim();
@@ -106,25 +119,35 @@ export default function BookingForm({ slug, route }: Props) {
   }, [formData.customer_email, toast]);
 
   const [participants, setParticipants] = useState<Participant[]>([
-    { name: "", height: "", helmet_size: "M", dietary: "" },
+    { name: "", height: "", helmet_size: "M", glove_size: "M", knee_pad_size: "M" },
   ]);
 
   const pricing = useMemo(() => {
-    return calculateTotalWithDiscount(
+    const result = calculateTotalWithDiscount(
       route.price,
       participants.length,
       route.discount_type,
       route.discount_value,
       route.discount_from_pax
     );
-  }, [participants.length, route]);
+    if (route.is_multi_day && numDays > 1) {
+      return {
+        total: result.total * numDays,
+        breakdown: result.breakdown.map((item) => ({
+          ...item,
+          price: item.price * numDays,
+        })),
+      };
+    }
+    return result;
+  }, [participants.length, route, numDays]);
 
   const hasDiscount = route.discount_type !== "none" && route.discount_value > 0;
 
   const addParticipant = () => {
     setParticipants([
       ...participants,
-      { name: "", height: "", helmet_size: "M", dietary: "" },
+      { name: "", height: "", helmet_size: "M", glove_size: "M", knee_pad_size: "M" },
     ]);
   };
 
@@ -150,6 +173,8 @@ export default function BookingForm({ slug, route }: Props) {
       const result = await createBooking({
         route_slug: slug,
         tour_date: formData.tour_date,
+        tour_end_date: route.is_multi_day && formData.tour_end_date ? formData.tour_end_date : null,
+        num_days: numDays,
         start_time: "",
         customer_name: formData.customer_name,
         customer_email: formData.customer_email,
@@ -186,11 +211,12 @@ export default function BookingForm({ slug, route }: Props) {
 
   const isStep1Valid =
     formData.tour_date &&
+    (!route.is_multi_day || formData.tour_end_date) &&
     formData.customer_name &&
     formData.customer_email;
 
   const isStep2Valid = participants.every(
-    (p) => p.name && p.height && p.helmet_size
+    (p) => p.name && p.height && p.helmet_size && p.glove_size && p.knee_pad_size
   );
 
   return (
@@ -249,7 +275,7 @@ export default function BookingForm({ slug, route }: Props) {
                   </span>
                 )}
               </div>
-              <p className="text-sm font-bold text-primary mt-2">{formatPrice(route.price)} <span className="text-xs font-normal text-gray-400 dark:text-muted-foreground">per person</span></p>
+              <p className="text-sm font-bold text-primary mt-2">{formatPrice(route.price)} <span className="text-xs font-normal text-gray-400 dark:text-muted-foreground">{route.price_label || "per person"}</span></p>
             </CardContent>
           </div>
         </Card>
@@ -292,22 +318,47 @@ export default function BookingForm({ slug, route }: Props) {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="tour_date">{t("booking.tour_date")} *</Label>
+                <Label htmlFor="tour_date">{route.is_multi_day ? "Start Date" : t("booking.tour_date")} *</Label>
                 <Input
                   id="tour_date"
                   type="date"
                   min={new Date().toISOString().split("T")[0]}
                   value={formData.tour_date}
-                  onChange={(e) =>
-                    setFormData({ ...formData, tour_date: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const newData = { ...formData, tour_date: e.target.value };
+                    if (route.is_multi_day && formData.tour_end_date && formData.tour_end_date < e.target.value) {
+                      newData.tour_end_date = "";
+                    }
+                    setFormData(newData);
+                  }}
                 />
-                {route.duration && (
+                {!route.is_multi_day && route.duration && (
                   <p className="text-xs text-gray-500 dark:text-muted-foreground">
                     Approx. ride time: <strong>{route.duration} Hours</strong>. Exact start time will be confirmed after booking.
                   </p>
                 )}
               </div>
+
+              {route.is_multi_day && (
+                <div className="space-y-2">
+                  <Label htmlFor="tour_end_date">End Date *</Label>
+                  <Input
+                    id="tour_end_date"
+                    type="date"
+                    min={formData.tour_date || new Date().toISOString().split("T")[0]}
+                    value={formData.tour_end_date}
+                    onChange={(e) =>
+                      setFormData({ ...formData, tour_end_date: e.target.value })
+                    }
+                    disabled={!formData.tour_date}
+                  />
+                  {formData.tour_date && formData.tour_end_date && (
+                    <p className="text-xs text-blue-600 font-medium">
+                      {numDays} day{numDays !== 1 ? "s" : ""} × {formatPrice(route.price)} per person / day
+                    </p>
+                  )}
+                </div>
+              )}
 
               <Separator />
 
@@ -460,15 +511,48 @@ export default function BookingForm({ slug, route }: Props) {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("booking.dietary")}</Label>
-                        <Input
-                          placeholder={t("booking.dietary_placeholder")}
-                          value={participant.dietary}
-                          onChange={(e) =>
-                            updateParticipant(index, "dietary", e.target.value)
+                        <Label>{t("booking.glove_size") || "Glove Size"} *</Label>
+                        <Select
+                          value={participant.glove_size}
+                          onValueChange={(value) =>
+                            updateParticipant(index, "glove_size", value)
                           }
-                        />
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {GLOVE_SIZES.map((size) => (
+                              <SelectItem key={size} value={size}>
+                                {size}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
+                      <div className="space-y-2">
+                        <Label>{t("booking.knee_pad_size") || "Knee Pad Size"} *</Label>
+                        <Select
+                          value={participant.knee_pad_size}
+                          onValueChange={(value) =>
+                            updateParticipant(index, "knee_pad_size", value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {KNEE_PAD_SIZES.map((size) => (
+                              <SelectItem key={size} value={size}>
+                                {size}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded text-xs text-blue-700 dark:text-blue-300">
+                      🍽️ Lunch and refreshments are included and will be prepared for all riders.
                     </div>
                   </div>
                 ))}
@@ -544,7 +628,7 @@ export default function BookingForm({ slug, route }: Props) {
                     <span className="font-semibold text-gray-800 dark:text-foreground">Personal Data Protection (PDPA)</span>
                   </div>
                   <p>
-                    I consent to the collection and use of my personal data (name, email, WhatsApp, height, dietary requirements) 
+                    I consent to the collection and use of my personal data (name, email, WhatsApp, height, gear sizes) 
                     for the purpose of processing this booking, preparing equipment, and communicating tour details. 
                     Your data will not be shared with third parties and will be stored securely. 
                     You may request deletion of your data at any time by contacting us.

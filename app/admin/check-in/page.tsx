@@ -238,8 +238,8 @@ export default function CheckInPage() {
                           {i === 0 && <span className="text-gray-400 ml-1">(Lead)</span>}
                         </span>
                         <span className="text-gray-500 dark:text-muted-foreground">
-                          {p.height}cm · Helmet {p.helmet_size}
-                          {p.dietary ? ` · ${p.dietary}` : ""}
+                          {p.height}cm · Helmet {p.helmet_size} · Gloves {p.glove_size || "M"} · Knee Pads {p.knee_pad_size || "M"}
+                          {p.bike_model && ` · 🚲 ${p.bike_model}`}
                         </span>
                       </div>
                     ))}

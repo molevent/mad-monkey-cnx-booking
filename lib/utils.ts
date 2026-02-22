@@ -92,6 +92,14 @@ export function calculateTotalWithDiscount(
   return { total, breakdown }
 }
 
+export function formatDateRange(startDate: string, endDate?: string | null, numDays?: number): string {
+  const start = formatDate(startDate)
+  if (!endDate) return start
+  const end = formatDate(endDate)
+  const days = numDays || 1
+  return `${start} — ${end} (${days} day${days !== 1 ? 's' : ''})`
+}
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()

@@ -105,13 +105,14 @@ export default async function BookingDetailPage({
     notFound();
   }
 
-  const { total: totalAmount } = calculateTotalWithDiscount(
+  const { total: baseTotalAmount } = calculateTotalWithDiscount(
     booking.route?.price || 0,
     booking.pax_count,
     booking.route?.discount_type || 'none',
     booking.route?.discount_value || 0,
     booking.route?.discount_from_pax || 2
   );
+  const totalAmount = baseTotalAmount * (booking.num_days || 1);
 
   return (
     <div>

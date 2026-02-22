@@ -21,6 +21,8 @@ interface RouteInput {
   avg_speed_mph?: number | null;
   uphill_ft?: number | null;
   downhill_ft?: number | null;
+  is_multi_day?: boolean;
+  price_label?: string;
 }
 
 export async function createRoute(input: RouteInput) {
@@ -71,6 +73,8 @@ export async function createRoute(input: RouteInput) {
       avg_speed_mph: input.avg_speed_mph || null,
       uphill_ft: input.uphill_ft || null,
       downhill_ft: input.downhill_ft || null,
+      is_multi_day: input.is_multi_day || false,
+      price_label: input.price_label || 'per person',
     };
 
     const { data, error } = await supabase

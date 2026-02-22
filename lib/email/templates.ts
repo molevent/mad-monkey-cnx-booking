@@ -300,6 +300,7 @@ export function confirmationEmail({
   startTime,
   bookingRef,
   qrCodeDataUrl,
+  participants,
   settings = defaultEmailSettings,
 }: {
   customerName: string
@@ -308,6 +309,7 @@ export function confirmationEmail({
   startTime: string
   bookingRef?: string
   qrCodeDataUrl?: string
+  participants?: { name: string; bike_model?: string }[]
   settings?: EmailSettings
 }) {
   const vars = { customer_name: customerName }
@@ -332,6 +334,89 @@ export function confirmationEmail({
     </tr>
   </table>` : ''
 
+  // Bike assignment section
+  const hasBikeAssignments = participants && participants.some(p => p.bike_model)
+  const bikeAssignmentSection = hasBikeAssignments ? infoBox('Your Bike Assignment',
+    `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+      <tr style="background:#f9fafb;">
+        <td style="padding:8px 12px;font-size:13px;font-weight:700;color:#374151;border-bottom:1px solid #e5e7eb;">Rider</td>
+        <td style="padding:8px 12px;font-size:13px;font-weight:700;color:#374151;border-bottom:1px solid #e5e7eb;">Bike Model</td>
+      </tr>
+      ${participants!.map((p, i) => `<tr>
+        <td style="padding:8px 12px;font-size:13px;color:#4b5563;border-bottom:1px solid #f3f4f6;">${p.name}${i === 0 ? ' (Lead)' : ''}</td>
+        <td style="padding:8px 12px;font-size:13px;color:#1f2937;font-weight:600;border-bottom:1px solid #f3f4f6;">${p.bike_model || 'To be assigned'}</td>
+      </tr>`).join('')}
+    </table>`,
+    '#10b981'
+  ) : ''
+
+  // Bike fitting guide
+  const bikeFittingSection = infoBox('Bike Fitting Guide',
+    `<p style="margin:0 0 12px;font-size:13px;color:#4b5563;line-height:1.5;">Our team will professionally fit your eBike before the ride. Here's what to expect:</p>
+    <ul style="margin:0 0 12px;padding-left:20px;">
+      <li style="margin:4px 0;font-size:13px;color:#4b5563;"><strong>Seat height</strong> — adjusted so your leg has a slight bend at the bottom of the pedal stroke</li>
+      <li style="margin:4px 0;font-size:13px;color:#4b5563;"><strong>Handlebar reach</strong> — set for a comfortable, upright position with relaxed shoulders</li>
+      <li style="margin:4px 0;font-size:13px;color:#4b5563;"><strong>Suspension</strong> — tuned to your weight for optimal comfort on the trail</li>
+      <li style="margin:4px 0;font-size:13px;color:#4b5563;"><strong>Brake levers</strong> — positioned for easy one-finger braking</li>
+    </ul>
+    <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#374151;">Our Bikes:</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-bottom:8px;">
+      <tr>
+        <td style="padding:8px 10px;font-size:12px;color:#4b5563;background:#f0fdf4;border-radius:4px;border:1px solid #bbf7d0;">
+          <strong style="color:#166534;">Specialized Turbo Levo Carbon Gen 3</strong><br/>
+          Full carbon frame · 150mm travel · 700Wh battery · Mixed wheels (29"/27.5") · SRAM Eagle drivetrain
+        </td>
+      </tr>
+      <tr><td style="padding:4px;"></td></tr>
+      <tr>
+        <td style="padding:8px 10px;font-size:12px;color:#4b5563;background:#eff6ff;border-radius:4px;border:1px solid #bfdbfe;">
+          <strong style="color:#1e40af;">Trek Rail Aluminum</strong><br/>
+          Aluminum frame · 150mm travel · Bosch Performance CX motor · 750Wh battery · Shimano drivetrain
+        </td>
+      </tr>
+    </table>
+    <p style="margin:0;font-size:12px;color:#6b7280;font-style:italic;">Both bikes feature full-power eMTB motors — no cycling experience needed!</p>`,
+    '#8b5cf6'
+  )
+
+  // Basic riding tips
+  const ridingTipsSection = infoBox('Basic eMTB Riding Tips',
+    `<p style="margin:0 0 10px;font-size:13px;color:#4b5563;line-height:1.5;">Our guides will brief you before the ride, but here are some tips to get you ready:</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:#4b5563;border-bottom:1px solid #f3f4f6;">
+          <strong style="color:#1f2937;">⚡ Power Modes</strong><br/>
+          Use ECO mode on flat/easy sections to save battery. Switch to TRAIL or TURBO for climbs. Your guide will help you manage power.
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:#4b5563;border-bottom:1px solid #f3f4f6;">
+          <strong style="color:#1f2937;">🛑 Braking</strong><br/>
+          Use <strong>both brakes together</strong> gently. The front brake has more stopping power — avoid grabbing it suddenly. Brake before corners, not during.
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:#4b5563;border-bottom:1px solid #f3f4f6;">
+          <strong style="color:#1f2937;">🏔️ Body Position</strong><br/>
+          Stand on the pedals with knees slightly bent on rough terrain. Keep your weight centered. Look ahead, not at your front wheel.
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:#4b5563;border-bottom:1px solid #f3f4f6;">
+          <strong style="color:#1f2937;">⬇️ Downhill</strong><br/>
+          Shift your weight back, drop your heels, and keep a loose grip. Let the bike roll — the suspension does the work!
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:6px 0;font-size:13px;color:#4b5563;">
+          <strong style="color:#1f2937;">😊 Relax & Enjoy</strong><br/>
+          The motor does the hard work. Stay relaxed, follow your guide's line, and enjoy the incredible scenery!
+        </td>
+      </tr>
+    </table>`,
+    '#f59e0b'
+  )
+
   const content = `
     <p style="margin:0 0 20px;font-size:15px;color:#4b5563;line-height:1.6;">${body}</p>
     ${infoBox('Your Booking',
@@ -341,14 +426,26 @@ export function confirmationEmail({
       (bookingRef ? infoRow('Booking Ref', bookingRef) : '')
     )}
     ${qrSection}
+    ${bikeAssignmentSection}
     ${infoBox('Meeting Point',
       `<p style="margin:0 0 8px;font-size:14px;color:#4b5563;">${settings.meeting_point}</p>` +
       (settings.meeting_point_map_url ? `<a href="${settings.meeting_point_map_url}" style="font-size:13px;color:#F58020;">View on Google Maps</a>` : ''),
       '#F58020'
     )}
+    ${bikeFittingSection}
+    ${ridingTipsSection}
     ${infoBox('What to Bring',
       `<ul style="margin:0;padding-left:20px;">${whatToBringItems}</ul>`,
       '#3b82f6'
+    )}
+    ${infoBox('Check-in Reminder',
+      `<p style="margin:0 0 8px;font-size:13px;color:#4b5563;line-height:1.5;">For a smooth check-in, please bring the following:</p>
+      <ul style="margin:0;padding-left:20px;">
+        <li style="margin:4px 0;font-size:13px;color:#4b5563;">Printed or digital copy of this <strong>booking confirmation</strong></li>
+        <li style="margin:4px 0;font-size:13px;color:#4b5563;">Signed <strong>liability waiver</strong> (printed or show on your phone)</li>
+        <li style="margin:4px 0;font-size:13px;color:#4b5563;">Valid <strong>ID / Passport</strong></li>
+      </ul>`,
+      '#F58020'
     )}
     ${cancellationPolicyBlock()}
     <p style="font-size:14px;color:#6b7280;">Have questions? Reply to this email${settings.company_whatsapp ? ' or contact us on WhatsApp at ' + settings.company_whatsapp : ''}.</p>

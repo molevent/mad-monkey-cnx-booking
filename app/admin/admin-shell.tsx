@@ -28,7 +28,7 @@ function SidebarContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-background">
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-60 bg-white dark:bg-card border-r border-gray-200 dark:border-border">
+      <aside className="fixed left-0 top-0 h-full w-60 bg-white dark:bg-card border-r border-gray-200 dark:border-border print:hidden">
         <div className="p-5 border-b border-gray-200 dark:border-border">
           <Link href="/admin" className="flex items-center gap-2">
             <Image
@@ -83,7 +83,7 @@ function SidebarContent({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="ml-60 min-h-screen">
+      <main className="ml-60 print:ml-0 min-h-screen">
         <div className="p-8">{children}</div>
       </main>
     </div>
