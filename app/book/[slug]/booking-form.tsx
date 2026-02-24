@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { createBooking } from "@/app/actions/bookings";
 import { lookupCustomerByEmail } from "@/app/actions/customers";
@@ -162,7 +163,7 @@ export default function BookingForm({ slug, route }: Props) {
   const updateParticipant = (
     index: number,
     field: keyof Participant,
-    value: string
+    value: string | boolean
   ) => {
     const updated = [...participants];
     updated[index] = { ...updated[index], [field]: value };
@@ -220,7 +221,10 @@ export default function BookingForm({ slug, route }: Props) {
     (!needsPickup || formData.pickup_location.trim());
 
   const isStep2Valid = participants.every(
-    (p) => p.name && p.height && p.helmet_size && p.glove_size && p.knee_pad_size
+    (p) => p.name && p.height &&
+      (p.own_helmet || p.helmet_size) &&
+      (p.own_gloves || p.glove_size) &&
+      (p.own_knee_pads || p.knee_pad_size)
   );
 
   return (
@@ -549,64 +553,106 @@ export default function BookingForm({ slug, route }: Props) {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("booking.helmet_size")} *</Label>
-                        <Select
-                          value={participant.helmet_size}
-                          onValueChange={(value) =>
-                            updateParticipant(index, "helmet_size", value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {HELMET_SIZES.map((size) => (
-                              <SelectItem key={size} value={size}>
-                                {size}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Label>{t("booking.helmet_size")} {!participant.own_helmet && "*"}</Label>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Checkbox
+                            id={`own_helmet_${index}`}
+                            checked={participant.own_helmet || false}
+                            onCheckedChange={(checked) =>
+                              updateParticipant(index, "own_helmet", !!checked)
+                            }
+                          />
+                          <label htmlFor={`own_helmet_${index}`} className="text-xs text-gray-500 cursor-pointer">
+                            I have my own
+                          </label>
+                        </div>
+                        {!participant.own_helmet && (
+                          <Select
+                            value={participant.helmet_size}
+                            onValueChange={(value) =>
+                              updateParticipant(index, "helmet_size", value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {HELMET_SIZES.map((size) => (
+                                <SelectItem key={size} value={size}>
+                                  {size}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("booking.glove_size")} *</Label>
-                        <Select
-                          value={participant.glove_size}
-                          onValueChange={(value) =>
-                            updateParticipant(index, "glove_size", value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {GLOVE_SIZES.map((size) => (
-                              <SelectItem key={size} value={size}>
-                                {size}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Label>{t("booking.glove_size")} {!participant.own_gloves && "*"}</Label>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Checkbox
+                            id={`own_gloves_${index}`}
+                            checked={participant.own_gloves || false}
+                            onCheckedChange={(checked) =>
+                              updateParticipant(index, "own_gloves", !!checked)
+                            }
+                          />
+                          <label htmlFor={`own_gloves_${index}`} className="text-xs text-gray-500 cursor-pointer">
+                            I have my own
+                          </label>
+                        </div>
+                        {!participant.own_gloves && (
+                          <Select
+                            value={participant.glove_size}
+                            onValueChange={(value) =>
+                              updateParticipant(index, "glove_size", value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {GLOVE_SIZES.map((size) => (
+                                <SelectItem key={size} value={size}>
+                                  {size}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("booking.knee_pad_size")} *</Label>
-                        <Select
-                          value={participant.knee_pad_size}
-                          onValueChange={(value) =>
-                            updateParticipant(index, "knee_pad_size", value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {KNEE_PAD_SIZES.map((size) => (
-                              <SelectItem key={size} value={size}>
-                                {size}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Label>{t("booking.knee_pad_size")} {!participant.own_knee_pads && "*"}</Label>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Checkbox
+                            id={`own_knee_pads_${index}`}
+                            checked={participant.own_knee_pads || false}
+                            onCheckedChange={(checked) =>
+                              updateParticipant(index, "own_knee_pads", !!checked)
+                            }
+                          />
+                          <label htmlFor={`own_knee_pads_${index}`} className="text-xs text-gray-500 cursor-pointer">
+                            I have my own
+                          </label>
+                        </div>
+                        {!participant.own_knee_pads && (
+                          <Select
+                            value={participant.knee_pad_size}
+                            onValueChange={(value) =>
+                              updateParticipant(index, "knee_pad_size", value)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {KNEE_PAD_SIZES.map((size) => (
+                                <SelectItem key={size} value={size}>
+                                  {size}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       </div>
                     </div>
                     <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded text-xs text-blue-700 dark:text-blue-300">

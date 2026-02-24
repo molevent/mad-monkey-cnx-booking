@@ -246,7 +246,7 @@ export default function CheckInPage() {
                           {i === 0 && <span className="text-gray-400 ml-1">(Lead)</span>}
                         </span>
                         <span className="text-gray-500 dark:text-muted-foreground">
-                          {p.height}cm · Helmet {p.helmet_size} · Gloves {p.glove_size || "M"} · Knee Pads {p.knee_pad_size || "M"}
+                          {p.height}cm · Helmet {p.own_helmet ? "Own" : p.helmet_size} · Gloves {p.own_gloves ? "Own" : (p.glove_size || "M")} · Knee Pads {p.own_knee_pads ? "Own" : (p.knee_pad_size || "M")}
                           {p.bike_model && ` · 🚲 ${p.bike_model}`}
                         </span>
                       </div>

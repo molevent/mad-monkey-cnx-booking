@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -149,7 +150,7 @@ export default function BookingEditForm({ booking, routes }: Props) {
     }
   };
 
-  const updateParticipant = (index: number, field: keyof Participant, value: string) => {
+  const updateParticipant = (index: number, field: keyof Participant, value: string | boolean) => {
     const updated = [...participants];
     updated[index] = { ...updated[index], [field]: value };
     setParticipants(updated);
@@ -442,51 +443,81 @@ export default function BookingEditForm({ booking, routes }: Props) {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Helmet Size</Label>
-                      <Select
-                        value={p.helmet_size}
-                        onValueChange={(v) => updateParticipant(index, "helmet_size", v)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {HELMET_SIZES.map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Checkbox
+                          id={`own_helmet_edit_${index}`}
+                          checked={p.own_helmet || false}
+                          onCheckedChange={(checked) => updateParticipant(index, "own_helmet", !!checked)}
+                        />
+                        <label htmlFor={`own_helmet_edit_${index}`} className="text-xs text-gray-500 cursor-pointer">Own</label>
+                      </div>
+                      {!p.own_helmet && (
+                        <Select
+                          value={p.helmet_size}
+                          onValueChange={(v) => updateParticipant(index, "helmet_size", v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {HELMET_SIZES.map((s) => (
+                              <SelectItem key={s} value={s}>{s}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Glove Size</Label>
-                      <Select
-                        value={p.glove_size || "M"}
-                        onValueChange={(v) => updateParticipant(index, "glove_size", v)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {GLOVE_SIZES.map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Checkbox
+                          id={`own_gloves_edit_${index}`}
+                          checked={p.own_gloves || false}
+                          onCheckedChange={(checked) => updateParticipant(index, "own_gloves", !!checked)}
+                        />
+                        <label htmlFor={`own_gloves_edit_${index}`} className="text-xs text-gray-500 cursor-pointer">Own</label>
+                      </div>
+                      {!p.own_gloves && (
+                        <Select
+                          value={p.glove_size || "M"}
+                          onValueChange={(v) => updateParticipant(index, "glove_size", v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {GLOVE_SIZES.map((s) => (
+                              <SelectItem key={s} value={s}>{s}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Knee Pad Size</Label>
-                      <Select
-                        value={p.knee_pad_size || "M"}
-                        onValueChange={(v) => updateParticipant(index, "knee_pad_size", v)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {KNEE_PAD_SIZES.map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Checkbox
+                          id={`own_knee_pads_edit_${index}`}
+                          checked={p.own_knee_pads || false}
+                          onCheckedChange={(checked) => updateParticipant(index, "own_knee_pads", !!checked)}
+                        />
+                        <label htmlFor={`own_knee_pads_edit_${index}`} className="text-xs text-gray-500 cursor-pointer">Own</label>
+                      </div>
+                      {!p.own_knee_pads && (
+                        <Select
+                          value={p.knee_pad_size || "M"}
+                          onValueChange={(v) => updateParticipant(index, "knee_pad_size", v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {KNEE_PAD_SIZES.map((s) => (
+                              <SelectItem key={s} value={s}>{s}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                     </div>
                     <div className="space-y-1 md:col-span-2">
                       <Label className="text-xs">Bike Model</Label>
@@ -538,15 +569,15 @@ export default function BookingEditForm({ booking, routes }: Props) {
                     </div>
                     <div>
                       <span className="text-gray-500 dark:text-muted-foreground">Helmet:</span>
-                      <span className="font-medium ml-1">{participant.helmet_size}</span>
+                      <span className="font-medium ml-1">{participant.own_helmet ? <Badge variant="outline" className="text-xs">Own</Badge> : participant.helmet_size}</span>
                     </div>
                     <div>
                       <span className="text-gray-500 dark:text-muted-foreground">Gloves:</span>
-                      <span className="font-medium ml-1">{participant.glove_size || "—"}</span>
+                      <span className="font-medium ml-1">{participant.own_gloves ? <Badge variant="outline" className="text-xs">Own</Badge> : (participant.glove_size || "—")}</span>
                     </div>
                     <div>
                       <span className="text-gray-500 dark:text-muted-foreground">Knee Pads:</span>
-                      <span className="font-medium ml-1">{participant.knee_pad_size || "—"}</span>
+                      <span className="font-medium ml-1">{participant.own_knee_pads ? <Badge variant="outline" className="text-xs">Own</Badge> : (participant.knee_pad_size || "—")}</span>
                     </div>
                   </div>
                   {participant.bike_model && (

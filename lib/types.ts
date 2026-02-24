@@ -13,6 +13,9 @@ export interface Participant {
   helmet_size: string
   glove_size: string
   knee_pad_size: string
+  own_helmet?: boolean
+  own_gloves?: boolean
+  own_knee_pads?: boolean
   bike_model?: string
   dietary?: string
 }
