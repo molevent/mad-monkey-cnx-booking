@@ -222,6 +222,14 @@ export default function CheckInPage() {
                 <p className="text-sm text-gray-500 dark:text-muted-foreground">Route</p>
                 <p className="font-medium">{booking.route?.title || "—"}</p>
               </div>
+              <div className="md:col-span-2">
+                <p className="text-sm text-gray-500 dark:text-muted-foreground">Pick-up / Drop-off</p>
+                {booking.pickup_location ? (
+                  <p className="font-medium text-blue-700">🚐 {booking.pickup_location}</p>
+                ) : (
+                  <p className="font-medium text-gray-600">🏍️ Coming to Mad Monkey</p>
+                )}
+              </div>
             </div>
 
             {/* Participants */}

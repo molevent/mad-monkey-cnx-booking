@@ -80,6 +80,7 @@ export interface Booking {
   payment_option: 'deposit_50' | 'full_100' | 'pay_at_venue' | null
   payment_status: 'unpaid' | 'deposit_paid' | 'fully_paid'
   amount_paid: number
+  pickup_location: string | null
   checked_in: boolean
   checked_in_at: string | null
   tracking_token: string

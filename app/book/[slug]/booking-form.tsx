@@ -80,7 +80,9 @@ export default function BookingForm({ slug, route }: Props) {
     customer_name: "",
     customer_email: "",
     customer_whatsapp: "",
+    pickup_location: "",
   });
+  const [needsPickup, setNeedsPickup] = useState(false);
 
   const numDays = (() => {
     if (!route.is_multi_day || !formData.tour_date || !formData.tour_end_date) return 1;
@@ -181,6 +183,7 @@ export default function BookingForm({ slug, route }: Props) {
         customer_whatsapp: formData.customer_whatsapp,
         pax_count: participants.length,
         participants_info: participants,
+        pickup_location: needsPickup ? formData.pickup_location : null,
       });
 
       if (result.error) {
@@ -213,7 +216,8 @@ export default function BookingForm({ slug, route }: Props) {
     formData.tour_date &&
     (!route.is_multi_day || formData.tour_end_date) &&
     formData.customer_name &&
-    formData.customer_email;
+    formData.customer_email &&
+    (!needsPickup || formData.pickup_location.trim());
 
   const isStep2Valid = participants.every(
     (p) => p.name && p.height && p.helmet_size && p.glove_size && p.knee_pad_size
@@ -419,6 +423,60 @@ export default function BookingForm({ slug, route }: Props) {
                 />
               </div>
 
+              {/* Pick-up / Drop-off */}
+              <div className="space-y-3 pt-2">
+                <Label className="text-sm font-semibold">Pick-up / Drop-off Service</Label>
+                <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                  Free pick-up & drop-off within 15 km of Chiang Mai city center.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => { setNeedsPickup(false); setFormData({ ...formData, pickup_location: "" }); }}
+                    className={`p-3 rounded-lg border-2 text-center transition-all ${
+                      !needsPickup
+                        ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    <span className="text-lg block mb-1">🏍️</span>
+                    <span className={`text-sm font-medium ${!needsPickup ? "text-primary" : "text-gray-600 dark:text-gray-400"}`}>
+                      I&apos;ll come to Mad Monkey
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNeedsPickup(true)}
+                    className={`p-3 rounded-lg border-2 text-center transition-all ${
+                      needsPickup
+                        ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                        : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    <span className="text-lg block mb-1">🚐</span>
+                    <span className={`text-sm font-medium ${needsPickup ? "text-primary" : "text-gray-600 dark:text-gray-400"}`}>
+                      Pick me up
+                    </span>
+                  </button>
+                </div>
+                {needsPickup && (
+                  <div className="space-y-2">
+                    <Label htmlFor="pickup_location">Pick-up Location *</Label>
+                    <Input
+                      id="pickup_location"
+                      placeholder="Hotel name or address in Chiang Mai"
+                      value={formData.pickup_location}
+                      onChange={(e) =>
+                        setFormData({ ...formData, pickup_location: e.target.value })
+                      }
+                    />
+                    <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                      Please enter your hotel name or address. Must be within 15 km of Chiang Mai city center.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <Button
                 className="w-full"
                 size="lg"
@@ -511,7 +569,7 @@ export default function BookingForm({ slug, route }: Props) {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("booking.glove_size") || "Glove Size"} *</Label>
+                        <Label>{t("booking.glove_size")} *</Label>
                         <Select
                           value={participant.glove_size}
                           onValueChange={(value) =>
@@ -531,7 +589,7 @@ export default function BookingForm({ slug, route }: Props) {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>{t("booking.knee_pad_size") || "Knee Pad Size"} *</Label>
+                        <Label>{t("booking.knee_pad_size")} *</Label>
                         <Select
                           value={participant.knee_pad_size}
                           onValueChange={(value) =>

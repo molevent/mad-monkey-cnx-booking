@@ -21,6 +21,7 @@ interface CreateBookingInput {
   customer_whatsapp: string;
   pax_count: number;
   participants_info: Participant[];
+  pickup_location?: string | null;
 }
 
 export async function createBooking(input: CreateBookingInput) {
@@ -85,6 +86,7 @@ export async function createBooking(input: CreateBookingInput) {
       tour_date: input.tour_date,
       tour_end_date: input.tour_end_date || null,
       num_days: input.num_days || 1,
+      pickup_location: input.pickup_location || null,
       start_time: input.start_time || "00:00",
       customer_name: input.customer_name,
       customer_email: input.customer_email,
@@ -293,6 +295,7 @@ export async function confirmBooking(bookingId: string) {
       bookingRef: booking.tracking_token,
       qrCodeDataUrl,
       participants: (booking.participants_info || []).map((p: any) => ({ name: p.name, bike_model: p.bike_model })),
+      pickupLocation: booking.pickup_location,
       settings: emailSettings,
     }),
   });
@@ -933,6 +936,7 @@ export async function sendBookingDetailsEmail(bookingId: string) {
       bookingRef: booking.tracking_token,
       qrCodeDataUrl,
       participants: (booking.participants_info || []).map((p: any) => ({ name: p.name, bike_model: p.bike_model })),
+      pickupLocation: booking.pickup_location,
       settings: emailSettings,
     });
     subject = emailSettings.confirmation_subject;

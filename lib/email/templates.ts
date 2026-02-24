@@ -301,6 +301,7 @@ export function confirmationEmail({
   bookingRef,
   qrCodeDataUrl,
   participants,
+  pickupLocation,
   settings = defaultEmailSettings,
 }: {
   customerName: string
@@ -310,6 +311,7 @@ export function confirmationEmail({
   bookingRef?: string
   qrCodeDataUrl?: string
   participants?: { name: string; bike_model?: string }[]
+  pickupLocation?: string | null
   settings?: EmailSettings
 }) {
   const vars = { customer_name: customerName }
@@ -423,7 +425,8 @@ export function confirmationEmail({
       infoRow('Tour', routeTitle) +
       infoRow('Date', tourDate) +
       (startTime && startTime !== 'To be confirmed' ? infoRow('Start Time', startTime) : '') +
-      (bookingRef ? infoRow('Booking Ref', bookingRef) : '')
+      (bookingRef ? infoRow('Booking Ref', bookingRef) : '') +
+      infoRow('Pick-up', pickupLocation ? `🚐 ${pickupLocation}` : '🏍️ Coming to Mad Monkey HQ')
     )}
     ${qrSection}
     ${bikeAssignmentSection}
