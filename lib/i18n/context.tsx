@@ -25,7 +25,7 @@ export function BookingI18nProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     const saved = localStorage.getItem("booking-locale") as Locale | null;
-    if (saved && ["en", "th", "cn", "jp"].includes(saved)) {
+    if (saved && ["en", "th", "cn", "jp", "ko"].includes(saved)) {
       setLocaleState(saved);
     }
   }, []);

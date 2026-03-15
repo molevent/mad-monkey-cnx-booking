@@ -2,9 +2,7 @@
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import type { Locale } from "@/lib/i18n/translations";
-
-const bookingLocales: Locale[] = ["en", "th", "cn", "jp"];
+import { bookingLocales } from "@/lib/i18n/translations";
 
 export function BookingHeader() {
   return (
