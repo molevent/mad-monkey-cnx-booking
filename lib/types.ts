@@ -16,6 +16,7 @@ export interface Participant {
   own_helmet?: boolean
   own_gloves?: boolean
   own_knee_pads?: boolean
+  own_bike?: boolean
   bike_model?: string
   dietary?: string
 }
@@ -42,6 +43,7 @@ export interface Route {
   downhill_ft: number | null
   is_multi_day: boolean
   price_label: string
+  trip_notes: string | null
 }
 
 export interface Customer {

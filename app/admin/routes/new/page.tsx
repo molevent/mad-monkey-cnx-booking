@@ -47,6 +47,7 @@ export default function NewRoutePage() {
     downhill_ft: null as number | null,
     is_multi_day: false,
     price_label: "per person",
+    trip_notes: "",
   });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -474,6 +475,20 @@ export default function NewRoutePage() {
                 />
                 <p className="text-xs text-gray-500 dark:text-muted-foreground">
                   Paste the iframe embed code from Komoot
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="trip_notes">Trip Notes</Label>
+                <Textarea
+                  id="trip_notes"
+                  placeholder="Important notes for this tour (displayed on tour detail page)..."
+                  rows={4}
+                  value={formData.trip_notes}
+                  onChange={(e) => setFormData({ ...formData, trip_notes: e.target.value })}
+                />
+                <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                  Shown on the tour detail page. E.g. what to bring, meeting info, etc.
                 </p>
               </div>
 

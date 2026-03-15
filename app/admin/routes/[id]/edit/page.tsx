@@ -50,6 +50,7 @@ export default function EditRoutePage() {
     downhill_ft: null as number | null,
     is_multi_day: false,
     price_label: "per person",
+    trip_notes: "",
   });
 
   useEffect(() => {
@@ -86,6 +87,7 @@ export default function EditRoutePage() {
           downhill_ft: data.downhill_ft ?? null,
           is_multi_day: data.is_multi_day ?? false,
           price_label: data.price_label || "per person",
+          trip_notes: data.trip_notes || "",
         });
       } catch {
         setFormError("Failed to load route data.");
@@ -528,6 +530,20 @@ export default function EditRoutePage() {
                 />
                 <p className="text-xs text-gray-500 dark:text-muted-foreground">
                   Paste the iframe embed code from Komoot
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="trip_notes">Trip Notes</Label>
+                <Textarea
+                  id="trip_notes"
+                  placeholder="Important notes for this tour (displayed on tour detail page)..."
+                  rows={4}
+                  value={formData.trip_notes}
+                  onChange={(e) => setFormData({ ...formData, trip_notes: e.target.value })}
+                />
+                <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                  Shown on the tour detail page. E.g. what to bring, meeting info, etc.
                 </p>
               </div>
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bike, MapPin, Clock, Users, ArrowUp, ArrowDown, Gauge, Route as RouteIcon } from "lucide-react";
+import { Bike, MapPin, Clock, Users, ArrowUp, ArrowDown, Gauge, Route as RouteIcon, FileText, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +32,8 @@ interface Route {
   avg_speed_mph: number | null;
   uphill_ft: number | null;
   downhill_ft: number | null;
+  is_multi_day?: boolean;
+  trip_notes?: string | null;
 }
 
 interface Props {
@@ -190,6 +192,53 @@ export default function TourDetailClient({ route, bookingDates }: Props) {
                     className="komoot-embed rounded-lg overflow-hidden"
                     dangerouslySetInnerHTML={{ __html: route.komoot_iframe }}
                   />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Trip Notes */}
+            {route.trip_notes && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-primary" />
+                    Trip Notes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                    {route.trip_notes}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Multi-day Contact Message */}
+            {route.is_multi_day && (
+              <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-3">
+                    <MessageCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-blue-800 dark:text-blue-300 mb-1">
+                        Multi-Day Tour
+                      </p>
+                      <p className="text-sm text-blue-700 dark:text-blue-400">
+                        After you submit your booking request, we will contact you back to confirm the details, itinerary, and arrange everything for your multi-day adventure.
+                      </p>
+                      <p className="text-sm text-blue-600 dark:text-blue-500 mt-2">
+                        You can also reach us directly via WhatsApp:{" "}
+                        <a
+                          href="https://wa.me/66816810368"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-bold underline"
+                        >
+                          +66 81 681 0368
+                        </a>
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             )}

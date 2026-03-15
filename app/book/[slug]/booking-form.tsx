@@ -125,6 +125,8 @@ export default function BookingForm({ slug, route }: Props) {
     { name: "", height: "", helmet_size: "M", glove_size: "M", knee_pad_size: "M" },
   ]);
 
+  const OWN_BIKE_DISCOUNT = 500;
+
   const pricing = useMemo(() => {
     const result = calculateTotalWithDiscount(
       route.price,
@@ -133,17 +135,30 @@ export default function BookingForm({ slug, route }: Props) {
       route.discount_value,
       route.discount_from_pax
     );
+    // Apply own bike discount
+    const ownBikeCount = participants.filter((p) => p.own_bike).length;
+    const ownBikeDiscount = ownBikeCount * OWN_BIKE_DISCOUNT;
+
     if (route.is_multi_day && numDays > 1) {
       return {
-        total: result.total * numDays,
-        breakdown: result.breakdown.map((item) => ({
+        total: result.total * numDays - ownBikeDiscount * numDays,
+        ownBikeDiscount: ownBikeDiscount * numDays,
+        breakdown: result.breakdown.map((item, i) => ({
           ...item,
-          price: item.price * numDays,
+          price: item.price * numDays - (participants[i]?.own_bike ? OWN_BIKE_DISCOUNT * numDays : 0),
         })),
       };
     }
-    return result;
-  }, [participants.length, route, numDays]);
+    return {
+      ...result,
+      total: result.total - ownBikeDiscount,
+      ownBikeDiscount,
+      breakdown: result.breakdown.map((item, i) => ({
+        ...item,
+        price: item.price - (participants[i]?.own_bike ? OWN_BIKE_DISCOUNT : 0),
+      })),
+    };
+  }, [participants, route, numDays]);
 
   const hasDiscount = route.discount_type !== "none" && route.discount_value > 0;
 
@@ -655,6 +670,32 @@ export default function BookingForm({ slug, route }: Props) {
                         )}
                       </div>
                     </div>
+                    {/* Bring Own Bike */}
+                    <div className="mt-3 p-3 border border-gray-200 dark:border-border rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`own_bike_${index}`}
+                          checked={participant.own_bike || false}
+                          onCheckedChange={(checked) =>
+                            updateParticipant(index, "own_bike", !!checked)
+                          }
+                        />
+                        <label htmlFor={`own_bike_${index}`} className="text-sm font-medium cursor-pointer">
+                          🚲 I will bring my own bike
+                        </label>
+                      </div>
+                      {participant.own_bike && (
+                        <div className="mt-2 space-y-2">
+                          <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded text-xs text-green-700 dark:text-green-300">
+                            ✅ You get a <strong>{OWN_BIKE_DISCOUNT} THB discount</strong> for bringing your own bike!
+                          </div>
+                          <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded text-xs text-amber-700 dark:text-amber-300">
+                            ⚠️ <strong>Important:</strong> Mad Monkey is not responsible for any damage to your personal bike during the tour.
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-950/30 rounded text-xs text-blue-700 dark:text-blue-300">
                       🍽️ Lunch and refreshments are included and will be prepared for all riders.
                     </div>
@@ -699,14 +740,53 @@ export default function BookingForm({ slug, route }: Props) {
                     <span>{t("booking.total")}</span>
                     <span className="text-primary">{formatPrice(pricing.total)}</span>
                   </div>
+                  {pricing.ownBikeDiscount > 0 && (
+                    <p className="text-xs text-green-600 text-right">
+                      🚲 Own bike discount: -{formatPrice(pricing.ownBikeDiscount)}
+                    </p>
+                  )}
                   {hasDiscount && participants.length >= route.discount_from_pax && (
                     <p className="text-xs text-green-600 text-right">
-                      {t("booking.you_save")} {formatPrice(route.price * participants.length - pricing.total)}!
+                      {t("booking.you_save")} {formatPrice(route.price * participants.length * (route.is_multi_day ? numDays : 1) - pricing.total)}!
                     </p>
                   )}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Returning Member Note */}
+            {returningCustomer && (
+              <div className="p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                <p className="text-sm text-purple-800 dark:text-purple-300 font-medium mb-1">
+                  👋 Welcome back! You&apos;re a returning member.
+                </p>
+                <p className="text-xs text-purple-600 dark:text-purple-400">
+                  After booking, please contact us via WhatsApp for special member benefits:{" "}
+                  <a
+                    href="https://wa.me/66816810368"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold underline hover:text-purple-800"
+                  >
+                    +66 81 681 0368
+                  </a>
+                </p>
+              </div>
+            )}
+
+            {/* Multi-day Contact Message */}
+            {route.is_multi_day && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-1">
+                  📞 Multi-Day Tour
+                </p>
+                <p className="text-xs text-blue-700 dark:text-blue-400">
+                  After you submit your booking request, we will contact you back to confirm the details, itinerary, and arrange everything for your multi-day adventure.
+                  You can also reach us via WhatsApp:{" "}
+                  <a href="https://wa.me/66816810368" target="_blank" rel="noopener noreferrer" className="font-bold underline">+66 81 681 0368</a>
+                </p>
+              </div>
+            )}
 
             {/* PDPA Consent */}
             <div className="p-4 bg-gray-50 dark:bg-secondary/50 rounded-lg border border-gray-200 dark:border-border">

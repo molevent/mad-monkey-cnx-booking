@@ -247,6 +247,7 @@ export default function CheckInPage() {
                         </span>
                         <span className="text-gray-500 dark:text-muted-foreground">
                           {p.height}cm · Helmet {p.own_helmet ? "Own" : p.helmet_size} · Gloves {p.own_gloves ? "Own" : (p.glove_size || "M")} · Knee Pads {p.own_knee_pads ? "Own" : (p.knee_pad_size || "M")}
+                          {p.own_bike && " · 🚲 Own Bike"}
                           {p.bike_model && ` · 🚲 ${p.bike_model}`}
                         </span>
                       </div>

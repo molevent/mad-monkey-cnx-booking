@@ -580,8 +580,13 @@ export default function BookingEditForm({ booking, routes }: Props) {
                       <span className="font-medium ml-1">{participant.own_knee_pads ? <Badge variant="outline" className="text-xs">Own</Badge> : (participant.knee_pad_size || "—")}</span>
                     </div>
                   </div>
-                  {participant.bike_model && (
+                  {participant.own_bike && (
                     <div className="mt-2 pt-2 border-t border-gray-100 dark:border-border">
+                      <Badge variant="outline" className="text-xs text-blue-600 border-blue-300">🚲 Own Bike (-500 THB)</Badge>
+                    </div>
+                  )}
+                  {participant.bike_model && (
+                    <div className={`${participant.own_bike ? "mt-1" : "mt-2 pt-2 border-t border-gray-100 dark:border-border"}`}>
                       <span className="text-gray-500 dark:text-muted-foreground text-sm">🚲 Bike:</span>
                       <span className="font-semibold text-sm ml-1 text-primary">{participant.bike_model}</span>
                     </div>

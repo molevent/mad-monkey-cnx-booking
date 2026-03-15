@@ -133,6 +133,8 @@ export default async function TourDetailPage({
           avg_speed_mph: route.avg_speed_mph,
           uphill_ft: route.uphill_ft,
           downhill_ft: route.downhill_ft,
+          is_multi_day: route.is_multi_day,
+          trip_notes: route.trip_notes,
         }}
         bookingDates={bookingDates}
       />
