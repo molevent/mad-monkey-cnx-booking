@@ -32,13 +32,10 @@ export default function RoutesTabsClient({ routes }: { routes: Route[] }) {
     return true;
   });
 
-  const hasMultiDay = routes.some((r) => r.is_multi_day);
-  const hasOneDay = routes.some((r) => !r.is_multi_day);
-
   const tabs: { key: TabType; label: string }[] = [
     { key: "all", label: "All Tours" },
-    ...(hasOneDay ? [{ key: "one_day" as TabType, label: "One Day" }] : []),
-    ...(hasMultiDay ? [{ key: "multi_day" as TabType, label: "Multi-Day" }] : []),
+    { key: "one_day", label: "One Day" },
+    { key: "multi_day", label: "Multi-Day" },
   ];
 
   return (
@@ -65,8 +62,18 @@ export default function RoutesTabsClient({ routes }: { routes: Route[] }) {
       {filteredRoutes.length === 0 ? (
         <div className="text-center py-16">
           <Mountain className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg font-medium">No tours in this category</p>
-          <p className="text-gray-400 text-sm mt-1">Try selecting a different tab.</p>
+          <p className="text-gray-500 text-lg font-medium">
+            {activeTab === "multi_day"
+              ? "Multi-Day tours coming soon!"
+              : activeTab === "one_day"
+              ? "One Day tours coming soon!"
+              : "No tours available yet"}
+          </p>
+          <p className="text-gray-400 text-sm mt-1">
+            {activeTab !== "all"
+              ? "Stay tuned — we're preparing amazing new routes for this category."
+              : "Check back later for amazing eBike adventures."}
+          </p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

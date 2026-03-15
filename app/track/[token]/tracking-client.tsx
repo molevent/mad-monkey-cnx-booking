@@ -108,6 +108,9 @@ export default function TrackingClient({ booking, bankInfo }: Props) {
 
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">{t("track.title")}</h1>
+          <p className="text-gray-600">
+            {t("track.booking_id")}: <span className="font-mono">{booking.id.slice(0, 8)}</span>
+          </p>
         </div>
 
         {/* Status Timeline */}
