@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Loader2, Upload, AlertCircle, X, ImagePlus } from "lucide-react";
+import { ChevronLeft, Loader2, Upload, AlertCircle, X, ImagePlus, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +52,7 @@ export default function NewRoutePage() {
   });
 
   const [galleryUploading, setGalleryUploading] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -474,8 +475,28 @@ export default function NewRoutePage() {
                 </p>
                 <div className="grid grid-cols-3 gap-3">
                   {formData.gallery_images.map((url, index) => (
-                    <div key={index} className="relative aspect-video rounded-lg overflow-hidden border">
+                    <div
+                      key={url}
+                      draggable
+                      onDragStart={() => setDragIndex(index)}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        if (dragIndex === null || dragIndex === index) return;
+                        const updated = [...formData.gallery_images];
+                        const [moved] = updated.splice(dragIndex, 1);
+                        updated.splice(index, 0, moved);
+                        setFormData((prev) => ({ ...prev, gallery_images: updated }));
+                        setDragIndex(index);
+                      }}
+                      onDragEnd={() => setDragIndex(null)}
+                      className={`relative aspect-video rounded-lg overflow-hidden border cursor-grab active:cursor-grabbing transition-opacity ${
+                        dragIndex === index ? "opacity-50 ring-2 ring-primary" : ""
+                      }`}
+                    >
                       <img src={url} alt={`Gallery ${index + 1}`} className="object-cover w-full h-full" />
+                      <div className="absolute top-1 left-1 bg-black/50 text-white rounded p-0.5">
+                        <GripVertical className="h-3 w-3" />
+                      </div>
                       <button
                         type="button"
                         onClick={() => {
