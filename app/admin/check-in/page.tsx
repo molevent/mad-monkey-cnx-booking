@@ -290,7 +290,7 @@ export default function CheckInPage() {
                   <p className="text-green-700 font-bold text-lg">Already Checked In</p>
                   {booking.checked_in_at && (
                     <p className="text-sm text-gray-500 dark:text-muted-foreground" suppressHydrationWarning>
-                      at {new Date(booking.checked_in_at).toLocaleString()}
+                      at {new Date(booking.checked_in_at).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                     </p>
                   )}
                 </div>

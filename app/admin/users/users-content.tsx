@@ -79,7 +79,7 @@ export default function UsersContent({ users, isSuperAdmin }: Props) {
                       )}
                     </TableCell>
                     <TableCell className="text-gray-500 dark:text-muted-foreground text-sm" suppressHydrationWarning>
-                      {new Date(user.created_at).toLocaleDateString()}
+                      {new Date(user.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                     </TableCell>
                     {isSuperAdmin && (
                       <TableCell className="text-right">

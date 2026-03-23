@@ -148,7 +148,7 @@ export default function BookingSummary({
         <div>
           <p className="text-sm text-gray-500 dark:text-muted-foreground">Created</p>
           <p className="font-medium" suppressHydrationWarning>
-            {new Date(createdAt).toLocaleString()}
+            {new Date(createdAt).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
           </p>
         </div>
       </CardContent>
