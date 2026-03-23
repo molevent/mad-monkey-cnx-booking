@@ -24,6 +24,7 @@ interface RouteInput {
   is_multi_day?: boolean;
   price_label?: string;
   trip_notes?: string | null;
+  gallery_images?: string[];
 }
 
 export async function createRoute(input: RouteInput) {
@@ -77,6 +78,7 @@ export async function createRoute(input: RouteInput) {
       is_multi_day: input.is_multi_day || false,
       price_label: input.price_label || 'per person',
       trip_notes: input.trip_notes || null,
+      gallery_images: input.gallery_images || [],
     };
 
     const { data, error } = await supabase

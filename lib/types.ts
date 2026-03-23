@@ -44,6 +44,7 @@ export interface Route {
   is_multi_day: boolean
   price_label: string
   trip_notes: string | null
+  gallery_images: string[]
 }
 
 export interface Customer {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Loader2, Upload, AlertCircle } from "lucide-react";
+import { ChevronLeft, Loader2, Upload, AlertCircle, X, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +51,10 @@ export default function EditRoutePage() {
     is_multi_day: false,
     price_label: "per person",
     trip_notes: "",
+    gallery_images: [] as string[],
   });
+
+  const [galleryUploading, setGalleryUploading] = useState(false);
 
   useEffect(() => {
     async function fetchRoute() {
@@ -88,6 +91,7 @@ export default function EditRoutePage() {
           is_multi_day: data.is_multi_day ?? false,
           price_label: data.price_label || "per person",
           trip_notes: data.trip_notes || "",
+          gallery_images: data.gallery_images || [],
         });
       } catch {
         setFormError("Failed to load route data.");
@@ -516,6 +520,75 @@ export default function EditRoutePage() {
                       )}
                     </label>
                   )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Gallery Images</Label>
+                <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                  Upload additional photos for the tour gallery (max 5MB each)
+                </p>
+                <div className="grid grid-cols-3 gap-3">
+                  {formData.gallery_images.map((url, index) => (
+                    <div key={index} className="relative aspect-video rounded-lg overflow-hidden border">
+                      <img src={url} alt={`Gallery ${index + 1}`} className="object-cover w-full h-full" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = formData.gallery_images.filter((_, i) => i !== index);
+                          setFormData({ ...formData, gallery_images: updated });
+                        }}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  <label className="flex flex-col items-center justify-center aspect-video border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={galleryUploading}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 5 * 1024 * 1024) {
+                          setFormError("Gallery image must be less than 5MB.");
+                          return;
+                        }
+                        setGalleryUploading(true);
+                        setFormError(null);
+                        try {
+                          const fd = new FormData();
+                          fd.append("file", file);
+                          const result = await uploadRouteImage(fd);
+                          if (result.error) {
+                            setFormError(`Gallery upload failed: ${result.error}`);
+                          } else if (result.url) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              gallery_images: [...prev.gallery_images, result.url!],
+                            }));
+                            toast({ title: "Uploaded", description: "Gallery image added" });
+                          }
+                        } catch (err: any) {
+                          setFormError(`Gallery upload failed: ${err.message || "Unknown error"}`);
+                        } finally {
+                          setGalleryUploading(false);
+                          e.target.value = "";
+                        }
+                      }}
+                    />
+                    {galleryUploading ? (
+                      <Loader2 className="h-6 w-6 text-gray-400 animate-spin" />
+                    ) : (
+                      <>
+                        <ImagePlus className="h-6 w-6 text-gray-400" />
+                        <span className="text-xs text-gray-400 mt-1">Add photo</span>
+                      </>
+                    )}
+                  </label>
                 </div>
               </div>
 

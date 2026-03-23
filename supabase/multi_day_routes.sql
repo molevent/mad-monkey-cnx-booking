@@ -2,7 +2,8 @@
 ALTER TABLE routes
 ADD COLUMN IF NOT EXISTS is_multi_day BOOLEAN DEFAULT false,
 ADD COLUMN IF NOT EXISTS price_label TEXT DEFAULT 'per person', -- e.g., "per person", "per person / day"
-ADD COLUMN IF NOT EXISTS trip_notes TEXT DEFAULT NULL;
+ADD COLUMN IF NOT EXISTS trip_notes TEXT DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS gallery_images TEXT[] DEFAULT '{}';
 
 -- Add tour_end_date to bookings for multi-day bookings
 ALTER TABLE bookings

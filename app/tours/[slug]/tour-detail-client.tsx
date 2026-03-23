@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Bike, MapPin, Clock, Users, ArrowUp, ArrowDown, Gauge, Route as RouteIcon, FileText, MessageCircle } from "lucide-react";
+import { Bike, MapPin, Clock, Users, ArrowUp, ArrowDown, Gauge, Route as RouteIcon, FileText, MessageCircle, ChevronLeft, ChevronRight, Images } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +34,7 @@ interface Route {
   downhill_ft: number | null;
   is_multi_day?: boolean;
   trip_notes?: string | null;
+  gallery_images?: string[];
 }
 
 interface Props {
@@ -56,7 +57,10 @@ function getDifficultyColor(difficulty: string) {
 
 export default function TourDetailClient({ route, bookingDates }: Props) {
   const { t } = useI18n();
-  const [useMetric, setUseMetric] = useState(false);
+  const [useMetric, setUseMetric] = useState(true);
+  const [galleryIndex, setGalleryIndex] = useState<number | null>(null);
+
+  const galleryImages = route.gallery_images || [];
 
   const hasStats = route.distance_mi || route.avg_speed_mph || route.uphill_ft || route.downhill_ft;
 
@@ -194,6 +198,86 @@ export default function TourDetailClient({ route, bookingDates }: Props) {
                   />
                 </CardContent>
               </Card>
+            )}
+
+            {/* Photo Gallery */}
+            {galleryImages.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Images className="h-5 w-5 text-primary" />
+                    Photo Gallery
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {galleryImages.map((url, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setGalleryIndex(index)}
+                        className="relative aspect-video rounded-lg overflow-hidden group cursor-pointer"
+                      >
+                        <img
+                          src={url}
+                          alt={`${route.title} photo ${index + 1}`}
+                          className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Gallery Lightbox */}
+            {galleryIndex !== null && (
+              <div
+                className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+                onClick={() => setGalleryIndex(null)}
+              >
+                <button
+                  type="button"
+                  className="absolute top-4 right-4 text-white/80 hover:text-white text-3xl font-bold z-10"
+                  onClick={() => setGalleryIndex(null)}
+                >
+                  ✕
+                </button>
+                {galleryImages.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full p-2 z-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setGalleryIndex((galleryIndex - 1 + galleryImages.length) % galleryImages.length);
+                      }}
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </button>
+                    <button
+                      type="button"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white rounded-full p-2 z-10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setGalleryIndex((galleryIndex + 1) % galleryImages.length);
+                      }}
+                    >
+                      <ChevronRight className="h-6 w-6" />
+                    </button>
+                  </>
+                )}
+                <img
+                  src={galleryImages[galleryIndex]}
+                  alt={`${route.title} photo ${galleryIndex + 1}`}
+                  className="max-h-[85vh] max-w-[90vw] object-contain rounded-lg"
+                  onClick={(e) => e.stopPropagation()}
+                />
+                <div className="absolute bottom-4 text-white/70 text-sm">
+                  {galleryIndex + 1} / {galleryImages.length}
+                </div>
+              </div>
             )}
 
             {/* Trip Notes */}

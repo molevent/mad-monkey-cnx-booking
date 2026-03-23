@@ -135,6 +135,7 @@ export default async function TourDetailPage({
           downhill_ft: route.downhill_ft,
           is_multi_day: route.is_multi_day,
           trip_notes: route.trip_notes,
+          gallery_images: route.gallery_images || [],
         }}
         bookingDates={bookingDates}
       />
