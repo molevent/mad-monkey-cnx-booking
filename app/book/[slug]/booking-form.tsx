@@ -125,8 +125,6 @@ export default function BookingForm({ slug, route }: Props) {
     { name: "", height: "", helmet_size: "M", glove_size: "M", knee_pad_size: "M" },
   ]);
 
-  const OWN_BIKE_DISCOUNT = 500;
-
   const pricing = useMemo(() => {
     const result = calculateTotalWithDiscount(
       route.price,
@@ -135,29 +133,17 @@ export default function BookingForm({ slug, route }: Props) {
       route.discount_value,
       route.discount_from_pax
     );
-    // Apply own bike discount
-    const ownBikeCount = participants.filter((p) => p.own_bike).length;
-    const ownBikeDiscount = ownBikeCount * OWN_BIKE_DISCOUNT;
 
     if (route.is_multi_day && numDays > 1) {
       return {
-        total: result.total * numDays - ownBikeDiscount * numDays,
-        ownBikeDiscount: ownBikeDiscount * numDays,
-        breakdown: result.breakdown.map((item, i) => ({
+        total: result.total * numDays,
+        breakdown: result.breakdown.map((item) => ({
           ...item,
-          price: item.price * numDays - (participants[i]?.own_bike ? OWN_BIKE_DISCOUNT * numDays : 0),
+          price: item.price * numDays,
         })),
       };
     }
-    return {
-      ...result,
-      total: result.total - ownBikeDiscount,
-      ownBikeDiscount,
-      breakdown: result.breakdown.map((item, i) => ({
-        ...item,
-        price: item.price - (participants[i]?.own_bike ? OWN_BIKE_DISCOUNT : 0),
-      })),
-    };
+    return result;
   }, [participants, route, numDays]);
 
   const hasDiscount = route.discount_type !== "none" && route.discount_value > 0;
@@ -686,8 +672,16 @@ export default function BookingForm({ slug, route }: Props) {
                       </div>
                       {participant.own_bike && (
                         <div className="mt-2 space-y-2">
-                          <div className="p-2 bg-green-50 dark:bg-green-950/30 rounded text-xs text-green-700 dark:text-green-300">
-                            ✅ You get a <strong>{OWN_BIKE_DISCOUNT} THB discount</strong> for bringing your own bike!
+                          <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded text-xs text-blue-700 dark:text-blue-300">
+                            📩 Please contact our admin via WhatsApp for special pricing:{" "}
+                            <a
+                              href="https://wa.me/+66816810368"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-bold underline hover:text-blue-900"
+                            >
+                              +66 81 681 0368
+                            </a>
                           </div>
                           <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded text-xs text-amber-700 dark:text-amber-300">
                             ⚠️ <strong>Important:</strong> Mad Monkey is not responsible for any damage to your personal bike during the tour.
@@ -740,11 +734,6 @@ export default function BookingForm({ slug, route }: Props) {
                     <span>{t("booking.total")}</span>
                     <span className="text-primary">{formatPrice(pricing.total)}</span>
                   </div>
-                  {pricing.ownBikeDiscount > 0 && (
-                    <p className="text-xs text-green-600 text-right">
-                      🚲 Own bike discount: -{formatPrice(pricing.ownBikeDiscount)}
-                    </p>
-                  )}
                   {hasDiscount && participants.length >= route.discount_from_pax && (
                     <p className="text-xs text-green-600 text-right">
                       {t("booking.you_save")} {formatPrice(route.price * participants.length * (route.is_multi_day ? numDays : 1) - pricing.total)}!
