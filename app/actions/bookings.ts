@@ -5,6 +5,7 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/transport";
 import { acknowledgementEmail, paymentRequestEmail, paymentReceivedEmail, confirmationEmail } from "@/lib/email/templates";
 import { getEmailSettings } from "@/app/actions/email-settings";
+import { notifyStaffOfNewBooking } from "@/lib/notify";
 import { formatDate, formatDateRange, formatTime, calculateTotalWithDiscount } from "@/lib/utils";
 import { generateQRCodeDataURL } from "@/lib/qrcode";
 import type { Participant, WaiverInfo } from "@/lib/types";
@@ -121,6 +122,20 @@ export async function createBooking(input: CreateBookingInput) {
       settings: emailSettings,
     }),
   });
+
+  // Notify staff (email + WhatsApp). Best-effort; never blocks the customer flow.
+  notifyStaffOfNewBooking({
+    customerName: input.customer_name,
+    customerEmail: input.customer_email,
+    customerWhatsapp: input.customer_whatsapp,
+    routeTitle: route.title,
+    tourDate: formatDateRange(input.tour_date, input.tour_end_date, input.num_days),
+    startTime: formatTime(input.start_time),
+    paxCount: input.pax_count,
+    pickupLocation: input.pickup_location,
+    trackingToken: booking.tracking_token,
+    settings: emailSettings,
+  }).catch((err) => console.error("Staff notify failed:", err));
 
   // Log activity
   await logActivity({

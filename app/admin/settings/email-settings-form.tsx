@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save, Building2, CreditCard, Mail, MapPin, FileText } from "lucide-react";
+import { Loader2, Save, Building2, CreditCard, Mail, MapPin, FileText, Bell, MessageCircle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -186,6 +187,129 @@ export default function EmailSettingsForm({ initialSettings }: Props) {
               placeholder="One item per line"
             />
             <p className="text-xs text-gray-500 dark:text-muted-foreground">One item per line. Each line becomes a bullet point in the email.</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* Staff Notifications */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5 text-primary" />
+            Staff Notifications
+          </CardTitle>
+          <CardDescription>
+            Get alerted by email and/or WhatsApp whenever a customer submits a new booking request
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-start gap-3">
+            <Checkbox
+              id="notify_on_new_booking"
+              checked={(settings.notify_on_new_booking || "true").toLowerCase() !== "false"}
+              onCheckedChange={(checked) =>
+                update("notify_on_new_booking", checked ? "true" : "false")
+              }
+            />
+            <div className="space-y-1">
+              <Label htmlFor="notify_on_new_booking" className="cursor-pointer">
+                Send notifications when a new booking arrives
+              </Label>
+              <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                Master switch — turn off to silence all channels below.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Notification Emails</Label>
+            <Textarea
+              value={settings.notification_emails}
+              onChange={(e) => update("notification_emails", e.target.value)}
+              rows={3}
+              placeholder="manager@madmonkey.com, ops@madmonkey.com, owner@madmonkey.com"
+            />
+            <p className="text-xs text-gray-500 dark:text-muted-foreground">
+              Comma-separated list of staff emails. Each address will receive an email summary the moment a customer submits a booking request.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* WhatsApp Notifications */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageCircle className="h-5 w-5 text-primary" />
+            WhatsApp Notifications
+          </CardTitle>
+          <CardDescription>
+            Pick one of two ways to push new-booking alerts into WhatsApp. You can leave both blank to disable.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Option A: CallMeBot */}
+          <div className="rounded-lg border border-gray-200 dark:border-border bg-gray-50 dark:bg-muted/30 p-4 space-y-4">
+            <div>
+              <p className="font-semibold text-sm">Option A — CallMeBot (easiest, free)</p>
+              <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
+                Sends a WhatsApp message to <strong>one phone number</strong> (e.g., a shared staff phone).
+                Setup:
+              </p>
+              <ol className="list-decimal pl-5 mt-2 text-xs text-gray-600 dark:text-muted-foreground space-y-1">
+                <li>Add the contact <strong>+34 644 51 95 23</strong> to your phone</li>
+                <li>From the phone that will receive alerts, send a WhatsApp message <strong>“I allow callmebot to send me messages”</strong> to that number</li>
+                <li>You&apos;ll get an API key back — paste it below</li>
+                <li>Full guide: <a href="https://www.callmebot.com/blog/free-api-whatsapp-messages/" target="_blank" rel="noopener noreferrer" className="text-primary underline">callmebot.com</a></li>
+              </ol>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Phone Number</Label>
+                <Input
+                  value={settings.whatsapp_callmebot_phone}
+                  onChange={(e) => update("whatsapp_callmebot_phone", e.target.value)}
+                  placeholder="66812345678 (with country code, no + or spaces)"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>API Key</Label>
+                <Input
+                  value={settings.whatsapp_callmebot_apikey}
+                  onChange={(e) => update("whatsapp_callmebot_apikey", e.target.value)}
+                  placeholder="1234567"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Option B: Generic webhook */}
+          <div className="rounded-lg border border-gray-200 dark:border-border bg-gray-50 dark:bg-muted/30 p-4 space-y-4">
+            <div>
+              <p className="font-semibold text-sm">Option B — Webhook (advanced, supports groups)</p>
+              <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
+                We POST the booking JSON to the URL you provide. Use this to forward into a <strong>WhatsApp group</strong> via tools like:
+              </p>
+              <ul className="list-disc pl-5 mt-2 text-xs text-gray-600 dark:text-muted-foreground space-y-1">
+                <li><a href="https://make.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">Make.com</a> — &ldquo;Webhook&rdquo; trigger → WhatsApp Business module → your group</li>
+                <li><a href="https://zapier.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">Zapier</a> — &ldquo;Webhooks by Zapier&rdquo; → WhatsApp Business</li>
+                <li><a href="https://n8n.io" target="_blank" rel="noopener noreferrer" className="text-primary underline">n8n</a> — Webhook node → WhatsApp/WAHA node</li>
+                <li><a href="https://whapi.cloud" target="_blank" rel="noopener noreferrer" className="text-primary underline">Whapi.cloud</a> / WAHA — full group support</li>
+              </ul>
+            </div>
+            <div className="space-y-2">
+              <Label>Webhook URL</Label>
+              <Input
+                value={settings.whatsapp_webhook_url}
+                onChange={(e) => update("whatsapp_webhook_url", e.target.value)}
+                placeholder="https://hook.make.com/abc123... (leave blank to skip)"
+              />
+              <p className="text-xs text-gray-500 dark:text-muted-foreground">
+                JSON payload: <code className="text-[11px]">{"{ type, company, text, booking, admin_url }"}</code>
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

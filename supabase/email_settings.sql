@@ -57,4 +57,9 @@ Camera for amazing photos!'),
   ('payment_deadline', '24 hours'),
   ('confirmation_subject', 'Booking Confirmed! - Mad Monkey eBike Tours'),
   ('confirmation_heading', 'See you soon, {{customer_name}}!'),
-  ('confirmation_body', 'Your booking is now fully confirmed. We can''t wait to show you the beautiful trails of Chiang Mai!');
+  ('confirmation_body', 'Your booking is now fully confirmed. We can''t wait to show you the beautiful trails of Chiang Mai!'),
+  ('notification_emails', ''),
+  ('notify_on_new_booking', 'true'),
+  ('whatsapp_callmebot_phone', ''),
+  ('whatsapp_callmebot_apikey', ''),
+  ('whatsapp_webhook_url', '');

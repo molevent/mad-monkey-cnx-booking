@@ -21,6 +21,12 @@ export interface EmailSettings {
   confirmation_subject: string
   confirmation_heading: string
   confirmation_body: string
+  // Staff / admin notifications when a new booking arrives
+  notification_emails: string
+  notify_on_new_booking: string
+  whatsapp_callmebot_phone: string
+  whatsapp_callmebot_apikey: string
+  whatsapp_webhook_url: string
 }
 
 export const defaultEmailSettings: EmailSettings = {
@@ -46,6 +52,11 @@ export const defaultEmailSettings: EmailSettings = {
   confirmation_subject: "Booking Confirmed! - Mad Monkey eBike Tours",
   confirmation_heading: "See you soon, {{customer_name}}!",
   confirmation_body: "Your booking is now fully confirmed. We can't wait to show you the beautiful trails of Chiang Mai!",
+  notification_emails: "",
+  notify_on_new_booking: "true",
+  whatsapp_callmebot_phone: "",
+  whatsapp_callmebot_apikey: "",
+  whatsapp_webhook_url: "",
 }
 
 function replaceVars(text: string, vars: Record<string, string>): string {
@@ -455,4 +466,51 @@ export function confirmationEmail({
   `
 
   return emailLayout(heading, 'Booking Confirmed!', content, settings)
+}
+
+export function staffBookingNotificationEmail({
+  customerName,
+  customerEmail,
+  customerWhatsapp,
+  routeTitle,
+  tourDate,
+  startTime,
+  paxCount,
+  pickupLocation,
+  adminUrl,
+  settings = defaultEmailSettings,
+}: {
+  customerName: string
+  customerEmail: string
+  customerWhatsapp: string
+  routeTitle: string
+  tourDate: string
+  startTime: string
+  paxCount: number
+  pickupLocation?: string | null
+  adminUrl: string
+  settings?: EmailSettings
+}) {
+  const content = `
+    <p style="margin:0 0 16px;font-size:15px;color:#4b5563;line-height:1.6;">
+      A new booking request just came in. Review and approve it in the admin dashboard.
+    </p>
+    ${infoBox('Booking Summary',
+      infoRow('Tour', routeTitle) +
+      infoRow('Date', tourDate) +
+      (startTime && startTime !== 'To be confirmed' ? infoRow('Start Time', startTime) : '') +
+      infoRow('Riders', String(paxCount)) +
+      (pickupLocation ? infoRow('Pick-up', pickupLocation) : '')
+    )}
+    ${infoBox('Customer',
+      infoRow('Name', customerName) +
+      infoRow('Email', customerEmail) +
+      (customerWhatsapp ? infoRow('WhatsApp', customerWhatsapp) : ''),
+      '#3b82f6'
+    )}
+    ${ctaButton('Open in Admin Dashboard', adminUrl)}
+    <p style="font-size:13px;color:#6b7280;">You're receiving this because your email is in the staff notification list. Manage recipients in <strong>Admin → Settings → Notifications</strong>.</p>
+  `
+
+  return emailLayout('New Booking Request', 'Action required — review & approve', content, settings)
 }
